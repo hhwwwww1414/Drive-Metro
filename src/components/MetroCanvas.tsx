@@ -1,7 +1,7 @@
 'use client';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { DataBundle, Line } from '@/lib/types';
-import { buildParallelEdges, mapCities, tryGetXY } from '@/lib/graph';
+import { buildParallelEdges, buildParallelEdgesForActive, mapCities, tryGetXY } from '@/lib/graph';
 import { placeLabels, type LabelPlacement } from '@/lib/label-placer';
 import { createLinePath, createLeaderPath, type Point } from '@/lib/geometry';
 import { METRO_CONFIG } from '@/lib/metro-config';
@@ -59,7 +59,12 @@ export default function MetroCanvas({ bundle, activeLines }: Props) {
   }, [bundle.linePaths]);
   
   // Старая система для совместимости (можно будет убрать)
-  const parallelEdges = useMemo(() => buildParallelEdges(bundle), [bundle]);
+  // Recompute parallel edges based only on visible lines so
+  // a single visible line goes center-to-center with no offset
+  const parallelEdges = useMemo(
+    () => buildParallelEdgesForActive(bundle, activeLines),
+    [bundle, activeLines]
+  );
 
   // вычислим рамку данных (для fit-to-data)
   const dataBBox = useMemo(() => {
@@ -442,14 +447,15 @@ export default function MetroCanvas({ bundle, activeLines }: Props) {
                     })()}
                   </g>
                 ) : (
-                  // Обычная станция - круг
+                  // Обычная станция — белый круг с чёрной окантовкой,
+                  // чтобы линии визуально «выходили» из точки
                   <circle
                     cx={city.x}
                     cy={city.y}
                     r={METRO_CONFIG.STATION_RADIUS}
-                    fill="#111"
-                    stroke={isHovered ? "#333" : "none"}
-                    strokeWidth={isHovered ? 1 : 0}
+                    fill="#fff"
+                    stroke={"#111"}
+                    strokeWidth={1.25}
                     className="non-scaling"
                     style={{ cursor: 'pointer' }}
                     onMouseEnter={() => setHoveredCity(city.city_id)}

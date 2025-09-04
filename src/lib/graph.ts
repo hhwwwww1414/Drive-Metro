@@ -55,6 +55,16 @@ export function buildParallelEdges(bundle: DataBundle): ParallelEdge[] {
   return calculateParallelOffsets(edges);
 }
 
+// Build parallel edges using only currently visible lines.
+export function buildParallelEdgesForActive(
+  bundle: DataBundle,
+  active: Set<string>
+): ParallelEdge[] {
+  const lines = bundle.lines.filter((l) => active.has(l.line_id));
+  const edges = lines.flatMap((l) => lineToEdges(l, bundle));
+  return calculateParallelOffsets(edges);
+}
+
 export function buildAllEdgesSafe(bundle?: DataBundle | null) {
   if (!bundle) return [];
   return buildAllEdges(bundle);
