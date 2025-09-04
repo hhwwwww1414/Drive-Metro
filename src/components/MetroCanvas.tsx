@@ -1,12 +1,11 @@
 'use client';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Corridor, DataBundle } from '@/lib/types';
+import { DataBundle } from '@/lib/types';
 import { buildAllEdges, mapCities, placeLabels, tryGetXY } from '@/lib/graph';
 
 type Props = {
   bundle: DataBundle;
   activeLines: Set<string>;
-  corridors: Corridor[];
 };
 
 export default function MetroCanvas({ bundle, activeLines }: Props) {
@@ -69,7 +68,8 @@ export default function MetroCanvas({ bundle, activeLines }: Props) {
     return () => ro.disconnect();
   }, []);
 
-  useEffect(() => { fitToData(); /* eslint-disable-next-line */ }, [frameSize.w, frameSize.h, dataBBox.w, dataBBox.h]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    useEffect(() => { fitToData(); }, [frameSize.w, frameSize.h, dataBBox.w, dataBBox.h]);
 
   // Wheel zoom
   const onWheel = (e: React.WheelEvent<SVGSVGElement>) => {
@@ -95,8 +95,8 @@ export default function MetroCanvas({ bundle, activeLines }: Props) {
     setTy(ty + (oy - ny));
   };
 
-  const onPointerDown = (e: React.PointerEvent<SVGSVGElement>) => {
-    (e.currentTarget as any).setPointerCapture(e.pointerId);
+    const onPointerDown = (e: React.PointerEvent<SVGSVGElement>) => {
+      (e.currentTarget as SVGSVGElement).setPointerCapture(e.pointerId);
     drag.current = { x: e.clientX, y: e.clientY, tx0: tx, ty0: ty, active: true };
     svgRef.current?.classList.add('grabbing');
   };
@@ -121,18 +121,22 @@ export default function MetroCanvas({ bundle, activeLines }: Props) {
   // реакция на «все/нет» из Legend
   useEffect(() => {
     const onMany = (e: Event) => {
-      const detail = (e as CustomEvent).detail as { ids: string[]; on: boolean };
-      const set = new Set(activeLines);
-      for (const id of detail.ids) {
-        detail.on ? set.add(id) : set.delete(id);
-      }
-      // хак: пробросим через window → страница обработает и обновит activeLines
-      const ev = new CustomEvent('page:update-lines', { detail: Array.from(set) });
-      window.dispatchEvent(ev);
-    };
-    window.addEventListener('legend:toggle-many', onMany as any);
-    return () => window.removeEventListener('legend:toggle-many', onMany as any);
-  }, [activeLines]);
+        const detail = (e as CustomEvent).detail as { ids: string[]; on: boolean };
+        const set = new Set(activeLines);
+        for (const id of detail.ids) {
+          if (detail.on) {
+            set.add(id);
+          } else {
+            set.delete(id);
+          }
+        }
+        // хак: пробросим через window → страница обработает и обновит activeLines
+        const ev = new CustomEvent('page:update-lines', { detail: Array.from(set) });
+        window.dispatchEvent(ev);
+      };
+      window.addEventListener('legend:toggle-many', onMany as EventListener);
+      return () => window.removeEventListener('legend:toggle-many', onMany as EventListener);
+    }, [activeLines]);
 
   return (
     <div ref={frameRef} className="map-frame">

@@ -1,4 +1,4 @@
-import type { City, Corridor, DataBundle, Line, LinePath } from './types';
+import type { City, DataBundle, Line } from './types';
 
 export type Edge = {
   a: string;       // city_id
@@ -40,12 +40,13 @@ export function lineToEdges(line: Line, bundle: DataBundle): Edge[] {
 }
 
 export function buildAllEdges(bundle: DataBundle) {
-  return bundle.lines.flatMap((l) => lineToEdges(l, bundle));
+  const lines = [...bundle.lines].sort((a, b) => (a.draw_order ?? 0) - (b.draw_order ?? 0));
+  return lines.flatMap((l) => lineToEdges(l, bundle));
 }
 
 export function buildAllEdgesSafe(bundle?: DataBundle | null) {
   if (!bundle) return [];
-  return bundle.lines.flatMap((l) => lineToEdges(l, bundle));
+  return buildAllEdges(bundle);
 }
 
 // очень простой раскладчик подписей (без коллизий, но с оффсетами)
