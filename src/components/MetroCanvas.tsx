@@ -76,7 +76,6 @@ export default function MetroCanvas({ bundle, activeLines }: Props) {
     ro.observe(frameRef.current);
     return () => ro.disconnect();
   }, []);
-
   useEffect(() => { fitToData(); }, [fitToData]);
 
   // Wheel zoom
