@@ -33,6 +33,7 @@ function toCities(rows: Record<string, string>[]): City[] {
     label: r.label || r.city_id,
     x: Number(r.x),
     y: Number(r.y),
+    is_hub: Number(r.is_hub) || 0,
   }));
 }
 
@@ -46,22 +47,31 @@ function toCorridors(rows: Record<string, string>[]): Corridor[] {
 }
 
 function toLines(rows: Record<string, string>[]): Line[] {
-  return rows.map((r) => ({
-    line_id: r.line_id,
-    corridor_id: r.corridor_id,
-    name: r.name,
-    color: r.color,
-    style: (r.style as Line['style']) || 'solid',
-    draw_order: r.draw_order ? Number(r.draw_order) : undefined,
-  }));
+  return rows.map((r) => {
+    const base: any = {
+      line_id: r.line_id,
+      corridor_id: r.corridor_id,
+      name: r.name,
+      color: r.color,
+      style: (r.style as Line['style']) || 'solid',
+      draw_order: r.draw_order ? Number(r.draw_order) : undefined,
+    };
+    // Optional grouping for variants (backwards compatible if column absent)
+    if (r.group_id) base.group_id = r.group_id;
+    return base as Line;
+  });
 }
 
 function toLinePaths(rows: Record<string, string>[]): LinePath[] {
-  return rows.map((r) => ({
-    line_id: r.line_id,
-    seq: Number(r.seq),
-    city_id: r.city_id,
-  }));
+  return rows.map((r) => {
+    const base: any = {
+      line_id: r.line_id,
+      seq: Number(r.seq),
+      city_id: r.city_id,
+    };
+    if (r.variant_id) base.variant_id = r.variant_id;
+    return base as LinePath;
+  });
 }
 
 export async function loadData(): Promise<DataBundle> {

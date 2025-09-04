@@ -1,4 +1,5 @@
 import type { City, DataBundle, Line } from './types';
+import { calculateParallelOffsets, type ParallelEdge } from './geometry';
 
 export type Edge = {
   a: string;       // city_id
@@ -46,6 +47,12 @@ export function buildAllEdges(bundle: DataBundle) {
       (b.draw_order ?? Number.POSITIVE_INFINITY)
   );
   return lines.flatMap((l) => lineToEdges(l, bundle));
+}
+
+// Создает параллельные ребра с разведением линий
+export function buildParallelEdges(bundle: DataBundle): ParallelEdge[] {
+  const edges = buildAllEdges(bundle);
+  return calculateParallelOffsets(edges);
 }
 
 export function buildAllEdgesSafe(bundle?: DataBundle | null) {

@@ -1,36 +1,99 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Drive-Metro: Схема автомаршрутов России
 
-## Getting Started
+Эталонная схема автомаршрутов по городам России в стиле московского метро.
 
-First, run the development server:
+## Особенности
+
+- **Метро-стиль дизайн**: Минималистичный, чистый интерфейс как у Мосметро
+- **Умное объединение маршрутов**: Автоматическое выделение основных веток и ответвлений
+- **Основные ветки**: Общие участки (3+ линий) рисуются толще и ярче
+- **Ответвления**: Уникальные участки (1-2 линии) отображаются как тонкие линии
+- **Интерактивность**: Пан/зум, подсветка маршрутов, клик по станциям
+- **LOD (Level of Detail)**: Адаптивное отображение подписей в зависимости от зума
+- **Коллизионный алгоритм**: Умное размещение подписей без пересечений
+- **Анимации**: Плавные переходы и hover-эффекты
+- **Адаптивность**: Работает на десктопе и мобильных устройствах
+
+## Структура данных
+
+Данные хранятся в CSV файлах в папке `public/data/`:
+
+- `cities.csv` - города с координатами и флагом узла (is_hub)
+- `lines.csv` - линии с цветами и стилями
+- `line_paths.csv` - маршруты линий через города
+- `corridors.csv` - группировка линий по коридорам
+
+## Управление
+
+### Навигация
+- **Колесо мыши** - зум к курсору
+- **Перетаскивание** - пан по карте
+- **Кнопки +/-** - зум с фиксированным шагом
+- **"Подогнать к данным"** - автозум для показа всех станций
+
+### Интерактивность
+- **Клик по линии** - подсветка маршрута
+- **Hover по линии** - временная подсветка
+- **Клик по станции** - закрепление подсветки
+- **ESC** - сброс всех подсветок
+
+### Легенда
+- **Коридоры** - группировка линий по направлениям
+- **Кнопки "Все/Нет"** - массовое включение/выключение
+- **Чекбоксы** - индивидуальное управление линиями
+
+## Технические детали
+
+### Архитектура
+- **React + Next.js** - основа приложения
+- **SVG** - рендеринг схемы
+- **TypeScript** - типизация
+- **CSS-in-JS** - стилизация
+
+### Алгоритмы
+- **Анализ маршрутов** - автоматическое выделение основных веток и ответвлений
+- **Объединение сегментов** - группировка общих участков для устранения наслойки
+- **Размещение подписей** - квадрантный алгоритм с коллизионным детектором
+- **LOD** - адаптивное отображение в зависимости от зума
+
+### Конфигурация
+Все параметры вынесены в `src/lib/metro-config.ts`:
+- Толщины линий и радиусы станций
+- Цвета и типографика
+- Пороги LOD и анимации
+- Настройки зума и паддингов
+
+## Разработка
 
 ```bash
+# Установка зависимостей
+npm install
+
+# Запуск в режиме разработки
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+
+# Сборка для продакшена
+npm run build
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Структура проекта
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```
+src/
+├── app/                 # Next.js App Router
+├── components/          # React компоненты
+│   ├── MetroCanvas.tsx  # Основной компонент схемы
+│   └── Legend.tsx       # Легенда с фильтрами
+└── lib/                 # Утилиты и логика
+    ├── types.ts         # TypeScript типы
+    ├── csv.ts           # Парсинг CSV
+    ├── graph.ts         # Работа с графом
+    ├── geometry.ts      # Геометрические вычисления
+    ├── label-placer.ts  # Алгоритм размещения подписей
+    ├── route-analyzer.ts # Анализ и объединение маршрутов
+    └── metro-config.ts  # Конфигурация
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Добавление новых данных
 
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Для добавления новой линии или города достаточно отредактировать соответствующие CSV файлы - интерфейс автоматически обновится без изменения кода.

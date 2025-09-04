@@ -3,6 +3,7 @@ export type City = {
   label: string;
   x: number;
   y: number;
+  is_hub: number; // 1 = узел/пересадка, 0 = обычная станция
 };
 
 export type Corridor = {
