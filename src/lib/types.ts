@@ -9,6 +9,7 @@ export type Corridor = {
   corridor_id: string;
   name: string;
   color: string; // HEX
+  order?: number; // для сортировки в легенде
 };
 
 export type Line = {
@@ -17,6 +18,7 @@ export type Line = {
   name: string;
   color: string; // HEX
   style?: 'solid' | 'dashed' | 'dotted';
+  draw_order?: number; // порядок отрисовки
 };
 
 export type LinePath = {

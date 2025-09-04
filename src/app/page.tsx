@@ -24,8 +24,8 @@ export default function Page() {
       const ids = (e as CustomEvent).detail as string[];
       setActiveLines(new Set(ids));
     };
-    window.addEventListener('page:update-lines', onUpdate as any);
-    return () => window.removeEventListener('page:update-lines', onUpdate as any);
+    window.addEventListener('page:update-lines', onUpdate as EventListener);
+    return () => window.removeEventListener('page:update-lines', onUpdate as EventListener);
   }, []);
 
   if (!bundle) {
@@ -43,11 +43,15 @@ export default function Page() {
         activeLines={activeLines}
         onToggle={(id) => {
           const next = new Set(activeLines);
-          next.has(id) ? next.delete(id) : next.add(id);
+          if (next.has(id)) {
+            next.delete(id);
+          } else {
+            next.add(id);
+          }
           setActiveLines(next);
         }}
       />
-      <MetroCanvas bundle={bundle} activeLines={activeLines} corridors={bundle.corridors} />
+      <MetroCanvas bundle={bundle} activeLines={activeLines} />
     </>
   );
 }
