@@ -1,0 +1,60 @@
+/* Базовые стили страницы */
+html, body {
+  height: 100%;
+}
+body {
+  margin: 0;
+  background: #f6f7fb;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif;
+  color: #111827;
+}
+
+/* === Fixed map viewport === */
+.map-frame {
+  position: fixed;            /* НЕ двигается со страницей */
+  inset: 12px;                /* отступы от краёв окна */
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  box-shadow: 0 4px 24px rgba(0,0,0,.06);
+  overflow: hidden;
+  z-index: 1;
+}
+
+.map-toolbar {
+  position: absolute;
+  left: 12px;
+  top: 12px;
+  display: flex;
+  gap: 8px;
+  z-index: 2;
+}
+
+.map-btn {
+  height: 36px;
+  min-width: 36px;
+  padding: 0 10px;
+  border: 1px solid #d1d5db;
+  background: #fff;
+  border-radius: 8px;
+  font: 500 14px/1 system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  cursor: pointer;
+}
+.map-btn:hover { background:#f9fafb; }
+
+.map-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  cursor: grab;
+  user-select: none;          /* не выделять текст */
+  -webkit-user-select: none;
+  touch-action: none;         /* тач-пан/зум без скролла страницы */
+}
+.map-svg.grabbing { cursor: grabbing; }
+
+/* подписи не перехватывают мышь → можно тянуть карту "за текст" */
+.map-label { pointer-events: none; }
+
+/* у линий толщина не меняется при зуме */
+.non-scaling { vector-effect: non-scaling-stroke; }
