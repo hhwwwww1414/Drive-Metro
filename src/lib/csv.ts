@@ -48,7 +48,7 @@ function toCorridors(rows: Record<string, string>[]): Corridor[] {
 
 function toLines(rows: Record<string, string>[]): Line[] {
   return rows.map((r) => {
-    const base: any = {
+    const base: Partial<Line> = {
       line_id: r.line_id,
       corridor_id: r.corridor_id,
       name: r.name,
@@ -56,7 +56,6 @@ function toLines(rows: Record<string, string>[]): Line[] {
       style: (r.style as Line['style']) || 'solid',
       draw_order: r.draw_order ? Number(r.draw_order) : undefined,
     };
-    // Optional grouping for variants (backwards compatible if column absent)
     if (r.group_id) base.group_id = r.group_id;
     return base as Line;
   });
@@ -64,7 +63,7 @@ function toLines(rows: Record<string, string>[]): Line[] {
 
 function toLinePaths(rows: Record<string, string>[]): LinePath[] {
   return rows.map((r) => {
-    const base: any = {
+    const base: Partial<LinePath> = {
       line_id: r.line_id,
       seq: Number(r.seq),
       city_id: r.city_id,

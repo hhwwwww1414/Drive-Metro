@@ -3,7 +3,7 @@ export type City = {
   label: string;
   x: number;
   y: number;
-  is_hub: number; // 1 = узел/пересадка, 0 = обычная станция
+  is_hub: number; // 1 = пересадочный узел, 0 = обычная станция
 };
 
 export type Corridor = {
@@ -20,11 +20,15 @@ export type Line = {
   color: string; // HEX
   style?: 'solid' | 'dashed' | 'dotted';
   draw_order?: number; // порядок отрисовки
+  // Логическая группа: варианты одной ветки (необязательное поле)
+  group_id?: string;
 };
 
 export type LinePath = {
   line_id: string;
-  seq: number;    // порядок точки в линии
+  // Вариант маршрута внутри одной линии (необязательное поле)
+  variant_id?: string | number;
+  seq: number; // порядок точки в линии
   city_id: string;
 };
 
@@ -34,3 +38,4 @@ export type DataBundle = {
   lines: Line[];
   linePaths: LinePath[];
 };
+

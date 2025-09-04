@@ -1,6 +1,6 @@
 'use client';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { DataBundle } from '@/lib/types';
+import { DataBundle, Line } from '@/lib/types';
 import { buildParallelEdges, mapCities, tryGetXY } from '@/lib/graph';
 import { placeLabels, type LabelPlacement } from '@/lib/label-placer';
 import { createLinePath, createLeaderPath, type Point } from '@/lib/geometry';
@@ -44,7 +44,7 @@ export default function MetroCanvas({ bundle, activeLines }: Props) {
 
   // Maps to know which lines pass through a station (for interchange ticks)
   const linesById = useMemo(() => {
-    const m: Record<string, any> = {};
+    const m: Record<string, Line> = {};
     for (const l of bundle.lines) m[l.line_id] = l;
     return m;
   }, [bundle.lines]);
@@ -415,10 +415,12 @@ export default function MetroCanvas({ bundle, activeLines }: Props) {
                     />
                     {(() => {
                       const ids = cityLinesMap.get(city.city_id) || [];
-                      const linesHere = ids.map((id) => linesById[id]).filter(Boolean);
+                      const linesHere: Line[] = ids
+                        .map((id) => linesById[id])
+                        .filter((v): v is Line => Boolean(v));
                       const n = Math.min(linesHere.length, 10);
                       const R = METRO_CONFIG.HUB_OUTER_RADIUS;
-                      return linesHere.slice(0, n).map((ln: any, idx: number) => {
+                      return linesHere.slice(0, n).map((ln: Line, idx: number) => {
                         const ang = (idx / n) * Math.PI * 2;
                         const x1 = city.x + (R - 1.5) * Math.cos(ang);
                         const y1 = city.y + (R - 1.5) * Math.sin(ang);
