@@ -41,6 +41,7 @@ function toCorridors(rows: Record<string, string>[]): Corridor[] {
     corridor_id: r.corridor_id,
     name: r.name,
     color: r.color,
+    order: r.order ? Number(r.order) : undefined,
   }));
 }
 
@@ -51,6 +52,7 @@ function toLines(rows: Record<string, string>[]): Line[] {
     name: r.name,
     color: r.color,
     style: (r.style as Line['style']) || 'solid',
+    draw_order: r.draw_order ? Number(r.draw_order) : undefined,
   }));
 }
 
@@ -70,10 +72,14 @@ export async function loadData(): Promise<DataBundle> {
     fetchText('/data/line_paths.csv'),
   ]);
 
-  return {
-    cities: toCities(parseCSV(citiesTxt)),
-    corridors: toCorridors(parseCSV(corridorsTxt)),
-    lines: toLines(parseCSV(linesTxt)),
-    linePaths: toLinePaths(parseCSV(pathsTxt)),
-  };
+  const cities = toCities(parseCSV(citiesTxt));
+  const corridors = toCorridors(parseCSV(corridorsTxt)).sort(
+    (a, b) => (a.order ?? Number.POSITIVE_INFINITY) - (b.order ?? Number.POSITIVE_INFINITY)
+  );
+  const lines = toLines(parseCSV(linesTxt)).sort(
+    (a, b) => (a.draw_order ?? Number.POSITIVE_INFINITY) - (b.draw_order ?? Number.POSITIVE_INFINITY)
+  );
+  const linePaths = toLinePaths(parseCSV(pathsTxt));
+
+  return { cities, corridors, lines, linePaths };
 }

@@ -1,12 +1,11 @@
 'use client';
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { Corridor, DataBundle } from '@/lib/types';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { DataBundle } from '@/lib/types';
 import { buildAllEdges, mapCities, placeLabels, tryGetXY } from '@/lib/graph';
 
 type Props = {
   bundle: DataBundle;
   activeLines: Set<string>;
-  corridors: Corridor[];
 };
 
 export default function MetroCanvas({ bundle, activeLines }: Props) {
@@ -38,7 +37,7 @@ export default function MetroCanvas({ bundle, activeLines }: Props) {
     x: 0, y: 0, tx0: 0, ty0: 0, active: false,
   });
 
-  const fitToData = () => {
+  const fitToData = useCallback(() => {
     const pad = 60;
     const w = frameSize.w - pad * 2;
     const h = frameSize.h - pad * 2;
@@ -56,7 +55,16 @@ export default function MetroCanvas({ bundle, activeLines }: Props) {
 
     setTx(cxView - cxData * s);
     setTy(cyView - cyData * s);
-  };
+  }, [
+    frameSize.w,
+    frameSize.h,
+    dataBBox.minX,
+    dataBBox.minY,
+    dataBBox.maxX,
+    dataBBox.maxY,
+    dataBBox.w,
+    dataBBox.h,
+  ]);
 
   // наблюдаем размер рамки
   useEffect(() => {
@@ -69,7 +77,7 @@ export default function MetroCanvas({ bundle, activeLines }: Props) {
     return () => ro.disconnect();
   }, []);
 
-  useEffect(() => { fitToData(); /* eslint-disable-next-line */ }, [frameSize.w, frameSize.h, dataBBox.w, dataBBox.h]);
+  useEffect(() => { fitToData(); }, [fitToData]);
 
   // Wheel zoom
   const onWheel = (e: React.WheelEvent<SVGSVGElement>) => {
@@ -95,8 +103,8 @@ export default function MetroCanvas({ bundle, activeLines }: Props) {
     setTy(ty + (oy - ny));
   };
 
-  const onPointerDown = (e: React.PointerEvent<SVGSVGElement>) => {
-    (e.currentTarget as any).setPointerCapture(e.pointerId);
+    const onPointerDown = (e: React.PointerEvent<SVGSVGElement>) => {
+      (e.currentTarget as SVGSVGElement).setPointerCapture(e.pointerId);
     drag.current = { x: e.clientX, y: e.clientY, tx0: tx, ty0: ty, active: true };
     svgRef.current?.classList.add('grabbing');
   };
@@ -121,18 +129,22 @@ export default function MetroCanvas({ bundle, activeLines }: Props) {
   // реакция на «все/нет» из Legend
   useEffect(() => {
     const onMany = (e: Event) => {
-      const detail = (e as CustomEvent).detail as { ids: string[]; on: boolean };
-      const set = new Set(activeLines);
-      for (const id of detail.ids) {
-        detail.on ? set.add(id) : set.delete(id);
-      }
-      // хак: пробросим через window → страница обработает и обновит activeLines
-      const ev = new CustomEvent('page:update-lines', { detail: Array.from(set) });
-      window.dispatchEvent(ev);
-    };
-    window.addEventListener('legend:toggle-many', onMany as any);
-    return () => window.removeEventListener('legend:toggle-many', onMany as any);
-  }, [activeLines]);
+        const detail = (e as CustomEvent).detail as { ids: string[]; on: boolean };
+        const set = new Set(activeLines);
+        for (const id of detail.ids) {
+          if (detail.on) {
+            set.add(id);
+          } else {
+            set.delete(id);
+          }
+        }
+        // хак: пробросим через window → страница обработает и обновит activeLines
+        const ev = new CustomEvent('page:update-lines', { detail: Array.from(set) });
+        window.dispatchEvent(ev);
+      };
+      window.addEventListener('legend:toggle-many', onMany as EventListener);
+      return () => window.removeEventListener('legend:toggle-many', onMany as EventListener);
+    }, [activeLines]);
 
   return (
     <div ref={frameRef} className="map-frame">

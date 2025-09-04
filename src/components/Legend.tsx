@@ -1,5 +1,5 @@
 'use client';
-import { Corridor, DataBundle } from '@/lib/types';
+import { DataBundle } from '@/lib/types';
 
 type Props = {
   bundle: DataBundle;
