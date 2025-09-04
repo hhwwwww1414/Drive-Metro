@@ -269,14 +269,14 @@ export default function Legend({ bundle, activeLines, onToggle }: Props) {
 
 function StationsList({ color, ids, cityIndex }: { color: string; ids: string[]; cityIndex: Record<string, { label: string; is_hub: number }> }) {
   return (
-    <div style={{ position: 'relative', paddingLeft: 18 }}>
-      <div style={{ position: 'absolute', left: 8, top: 6, bottom: 6, width: 2, background: color, borderRadius: 1 }} />
+    <div style={{ position: 'relative', paddingLeft: 28 }}>
+      <div style={{ position: 'absolute', left: 14, top: 6, bottom: 6, width: 2, background: color, borderRadius: 1 }} />
       {ids.map((id, idx) => {
         const city = cityIndex[id];
         if (!city) return null;
         return (
-          <div key={`${id}-${idx}`} style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0 6px 10px' }}>
-            <div style={{ position: 'absolute', left: 4, width: 10, height: 10, borderRadius: 5, background: '#fff', border: `2px solid ${color}` }} />
+          <div key={`${id}-${idx}`} style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0 6px 24px' }}>
+            <div style={{ position: 'absolute', left: 8, width: 10, height: 10, borderRadius: 5, background: '#fff', border: `2px solid ${color}` }} />
             <div style={{ fontSize: 13, color: '#111', fontWeight: city.is_hub ? (600 as const) : (400 as const) }}>{city.label}</div>
           </div>
         );
