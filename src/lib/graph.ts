@@ -40,7 +40,11 @@ export function lineToEdges(line: Line, bundle: DataBundle): Edge[] {
 }
 
 export function buildAllEdges(bundle: DataBundle) {
-  const lines = [...bundle.lines].sort((a, b) => (a.draw_order ?? 0) - (b.draw_order ?? 0));
+  const lines = [...bundle.lines].sort(
+    (a, b) =>
+      (a.draw_order ?? Number.POSITIVE_INFINITY) -
+      (b.draw_order ?? Number.POSITIVE_INFINITY)
+  );
   return lines.flatMap((l) => lineToEdges(l, bundle));
 }
 

@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { DataBundle } from '@/lib/types';
 import { buildAllEdges, mapCities, placeLabels, tryGetXY } from '@/lib/graph';
 
@@ -37,7 +37,7 @@ export default function MetroCanvas({ bundle, activeLines }: Props) {
     x: 0, y: 0, tx0: 0, ty0: 0, active: false,
   });
 
-  const fitToData = () => {
+  const fitToData = useCallback(() => {
     const pad = 60;
     const w = frameSize.w - pad * 2;
     const h = frameSize.h - pad * 2;
@@ -55,7 +55,16 @@ export default function MetroCanvas({ bundle, activeLines }: Props) {
 
     setTx(cxView - cxData * s);
     setTy(cyView - cyData * s);
-  };
+  }, [
+    frameSize.w,
+    frameSize.h,
+    dataBBox.minX,
+    dataBBox.minY,
+    dataBBox.maxX,
+    dataBBox.maxY,
+    dataBBox.w,
+    dataBBox.h,
+  ]);
 
   // наблюдаем размер рамки
   useEffect(() => {
@@ -67,9 +76,7 @@ export default function MetroCanvas({ bundle, activeLines }: Props) {
     ro.observe(frameRef.current);
     return () => ro.disconnect();
   }, []);
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    useEffect(() => { fitToData(); }, [frameSize.w, frameSize.h, dataBBox.w, dataBBox.h]);
+  useEffect(() => { fitToData(); }, [fitToData]);
 
   // Wheel zoom
   const onWheel = (e: React.WheelEvent<SVGSVGElement>) => {
