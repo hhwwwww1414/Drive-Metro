@@ -1,4 +1,5 @@
 'use client';
+import { useMemo, useState } from 'react';
 import { DataBundle } from '@/lib/types';
 
 type Props = {
@@ -13,6 +14,45 @@ export default function Legend({ bundle, activeLines, onToggle }: Props) {
     if (!byCorridor[l.corridor_id]) byCorridor[l.corridor_id] = [];
     byCorridor[l.corridor_id].push(l.line_id);
   }
+
+  // Индексы для быстрого доступа
+  const cityIndex = useMemo(() => {
+    const idx: Record<string, { label: string; is_hub: number }> = {};
+    for (const c of bundle.cities) idx[c.city_id] = { label: c.label, is_hub: c.is_hub };
+    return idx;
+  }, [bundle.cities]);
+
+  const lineVariants = useMemo(() => {
+    type V = { variant: string; cities: string[] };
+    const temp = new Map<string, { seq: number; city_id: string; variant: string }[]>();
+    for (const p of bundle.linePaths) {
+      const variant = p.variant_id != null ? String(p.variant_id) : '0';
+      const key = `${p.line_id}::${variant}`;
+      if (!temp.has(key)) temp.set(key, []);
+      temp.get(key)!.push({ seq: p.seq, city_id: p.city_id, variant });
+    }
+    const out = new Map<string, V[]>();
+    for (const [key, arr] of temp) {
+      const [lineId, variant] = key.split('::');
+      arr.sort((a, b) => a.seq - b.seq);
+      if (!out.has(lineId)) out.set(lineId, []);
+      out.get(lineId)!.push({ variant, cities: arr.map((r) => r.city_id) });
+    }
+    return out;
+  }, [bundle.linePaths]);
+
+  const [expanded, setExpanded] = useState<Set<string>>(new Set());
+  const toggleExpanded = (lineId: string) => {
+    setExpanded((prev) => {
+      const next = new Set(prev);
+      if (next.has(lineId)) {
+        next.delete(lineId);
+      } else {
+        next.add(lineId);
+      }
+      return next;
+    });
+  };
 
   const toggleAll = (ids: string[], on: boolean) => {
     const evt = new CustomEvent('legend:toggle-many', { detail: { ids, on } });
@@ -126,60 +166,118 @@ export default function Legend({ bundle, activeLines, onToggle }: Props) {
                 .filter((l) => l.corridor_id === c.corridor_id)
                 .map((l) => {
                   const on = activeLines.has(l.line_id);
+                  const isExpanded = expanded.has(l.line_id);
                   return (
-                    <label
-                      key={l.line_id}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 8,
-                        padding: '6px 8px',
-                        border: '1px solid #e5e7eb',
-                        borderRadius: 6,
-                        background: on ? '#fff' : '#f9fafb',
-                        opacity: on ? 1 : 0.7,
-                        cursor: 'pointer',
-                        transition: 'all 120ms ease-out',
-                        fontSize: 13,
-                      }}
-                      onMouseEnter={(e) => {
-                        if (!on) e.currentTarget.style.background = '#f3f4f6';
-                      }}
-                      onMouseLeave={(e) => {
-                        if (!on) e.currentTarget.style.background = '#f9fafb';
-                      }}
-                    >
-                      <input
-                        type="checkbox"
-                        checked={on}
-                        onChange={() => onToggle(l.line_id)}
-                        style={{ 
-                          width: 14, 
-                          height: 14,
-                          accentColor: l.color,
-                          cursor: 'pointer'
-                        }}
-                      />
-                      <span
+                    <div key={l.line_id}>
+                      <label
                         style={{
-                          width: 20,
-                          height: 3,
-                          background: l.color,
-                          borderRadius: 1.5,
-                          flexShrink: 0,
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 8,
+                          padding: '6px 8px',
+                          border: '1px solid #e5e7eb',
+                          borderRadius: 6,
+                          background: on ? '#fff' : '#f9fafb',
+                          opacity: on ? 1 : 0.7,
+                          cursor: 'pointer',
+                          transition: 'all 120ms ease-out',
+                          fontSize: 13,
                         }}
-                      />
-                      <span style={{ 
-                        fontSize: 13, 
-                        color: on ? '#111' : '#666',
-                        flex: 1
-                      }}>
-                        {l.name}
-                      </span>
-                    </label>
+                        onMouseEnter={(e) => {
+                          if (!on) e.currentTarget.style.background = '#f3f4f6';
+                        }}
+                        onMouseLeave={(e) => {
+                          if (!on) e.currentTarget.style.background = '#f9fafb';
+                        }}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={on}
+                          onChange={() => onToggle(l.line_id)}
+                          style={{ 
+                            width: 14, 
+                            height: 14,
+                            accentColor: l.color,
+                            cursor: 'pointer'
+                          }}
+                        />
+                        <span
+                          style={{
+                            width: 20,
+                            height: 3,
+                            background: l.color,
+                            borderRadius: 1.5,
+                            flexShrink: 0,
+                          }}
+                        />
+                        <span style={{ 
+                          fontSize: 13, 
+                          color: on ? '#111' : '#666',
+                          flex: 1
+                        }}>
+                          {l.name}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={(ev) => { ev.preventDefault(); ev.stopPropagation(); toggleExpanded(l.line_id); }}
+                          title={isExpanded ? 'Скрыть станции' : 'Показать станции'}
+                          style={{
+                            width: 24,
+                            height: 24,
+                            border: '1px solid #e5e7eb',
+                            background: '#fff',
+                            borderRadius: 6,
+                            display: 'grid',
+                            placeItems: 'center',
+                            cursor: 'pointer'
+                          }}
+                        >
+                          <span style={{ display: 'inline-block', transform: isExpanded ? 'rotate(90deg)' : 'rotate(0deg)', transition: 'transform 120ms ease' }}>▸</span>
+                        </button>
+                      </label>
+                      {isExpanded && (
+                        <div style={{ margin: '6px 0 10px 26px', border: '1px solid #e5e7eb', borderRadius: 8, background: '#fff', padding: '8px 10px' }}>
+                          {(() => {
+                            const variants = lineVariants.get(l.line_id) || [];
+                            if (variants.length <= 1) {
+                              const ids = (variants[0]?.cities) ?? bundle.linePaths.filter(p=>p.line_id===l.line_id).sort((a,b)=>a.seq-b.seq).map(p=>p.city_id);
+                              return (<StationsList color={l.color} ids={ids} cityIndex={cityIndex} />);
+                            }
+                            return (
+                              <div style={{ display: 'grid', gap: 12 }}>
+                                {variants.map((v, i) => (
+                                  <div key={v.variant}>
+                                    <div style={{ fontSize: 12, color: '#6b7280', margin: '2px 0 6px 2px' }}>Вариант {i + 1}</div>
+                                    <StationsList color={l.color} ids={v.cities} cityIndex={cityIndex} />
+                                  </div>
+                                ))}
+                              </div>
+                            );
+                          })()}
+                        </div>
+                      )}
+                    </div>
                   );
                 })}
             </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function StationsList({ color, ids, cityIndex }: { color: string; ids: string[]; cityIndex: Record<string, { label: string; is_hub: number }> }) {
+  return (
+    <div style={{ position: 'relative', paddingLeft: 18 }}>
+      <div style={{ position: 'absolute', left: 8, top: 6, bottom: 6, width: 2, background: color, borderRadius: 1 }} />
+      {ids.map((id, idx) => {
+        const city = cityIndex[id];
+        if (!city) return null;
+        return (
+          <div key={`${id}-${idx}`} style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0 6px 10px' }}>
+            <div style={{ position: 'absolute', left: 4, width: 10, height: 10, borderRadius: 5, background: '#fff', border: `2px solid ${color}` }} />
+            <div style={{ fontSize: 13, color: '#111', fontWeight: city.is_hub ? (600 as const) : (400 as const) }}>{city.label}</div>
           </div>
         );
       })}
