@@ -1,5 +1,5 @@
 import type { City, DataBundle, Line } from './types';
-import { calculateParallelOffsets, type ParallelEdge } from './geometry';
+import { calculateParallelOffsets, edgeKey, type ParallelEdge } from './geometry';
 
 export type Edge = {
   a: string;       // city_id
@@ -49,9 +49,22 @@ export function buildAllEdges(bundle: DataBundle) {
   return lines.flatMap((l) => lineToEdges(l, bundle));
 }
 
+// Collapse duplicate edges within the same corridor on a segment, so that
+// common sections of multiple variants render as a single stroke per corridor.
+function dedupeEdgesByCorridor(edges: Edge[]): Edge[] {
+  const seen = new Map<string, Edge>(); // key: segmentKey::corridor_id
+  for (const e of edges) {
+    const key = `${edgeKey(e.a, e.b)}::${e.line.corridor_id}`;
+    if (!seen.has(key)) {
+      seen.set(key, e);
+    }
+  }
+  return Array.from(seen.values());
+}
+
 // Создает параллельные ребра с разведением линий
 export function buildParallelEdges(bundle: DataBundle): ParallelEdge[] {
-  const edges = buildAllEdges(bundle);
+  const edges = dedupeEdgesByCorridor(buildAllEdges(bundle));
   return calculateParallelOffsets(edges);
 }
 
@@ -61,7 +74,7 @@ export function buildParallelEdgesForActive(
   active: Set<string>
 ): ParallelEdge[] {
   const lines = bundle.lines.filter((l) => active.has(l.line_id));
-  const edges = lines.flatMap((l) => lineToEdges(l, bundle));
+  const edges = dedupeEdgesByCorridor(lines.flatMap((l) => lineToEdges(l, bundle)));
   return calculateParallelOffsets(edges);
 }
 

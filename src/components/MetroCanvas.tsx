@@ -77,21 +77,10 @@ export default function MetroCanvas({ bundle, activeLines }: Props) {
   }, [bundle.linePaths]);
   
   // Старая система для совместимости (можно будет убрать)
-  // Recompute parallel edges based only on visible lines so
-  // a single visible line goes center-to-center with no offset
-  const activeLinesNonEW = useMemo(() => {
-    const s = new Set<string>();
-    const includeUnified = activeLines.size === 1; // in single-line mode draw center-to-center even for unified corridors
-    activeLines.forEach((id) => {
-      // linesById may not contain id for hidden lines; include them if not unified
-      const line = linesById[id];
-      if (!line || includeUnified || !unifiedCorridors.has(line.corridor_id)) s.add(id);
-    });
-    return s;
-  }, [activeLines, linesById, unifiedCorridors]);
+  // Recompute parallel edges based only on visible lines; corridor duplicates are deduped downstream
   const parallelEdges = useMemo(
-    () => buildParallelEdgesForActive(bundle, activeLinesNonEW),
-    [bundle, activeLinesNonEW]
+    () => buildParallelEdgesForActive(bundle, activeLines),
+    [bundle, activeLines]
   );
 
   // вычислим рамку данных (для fit-to-data)
@@ -370,7 +359,7 @@ export default function MetroCanvas({ bundle, activeLines }: Props) {
             );
           })}
           {/* объединенные линии */}
-          {!isSingleLine && unifiedSegmentsForCorridors.map((segment, i) => {
+          {false && unifiedSegmentsForCorridors.map((segment, i) => {
             // Проверяем, есть ли активные линии в этом сегменте
             const hasActiveLines = segment.lines.some(line => activeLines.has(line.line_id));
             if (!hasActiveLines) return null;
