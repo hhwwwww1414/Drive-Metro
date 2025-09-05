@@ -46,7 +46,7 @@ export default function MetroCanvas({ bundle, activeLines }: Props) {
   }, [routeAnalysis, cityIndex]);
   // Build unified segments for the selected corridors
   const unifiedSegmentsForCorridors = useMemo(() => {
-    const out: ReturnType<typeof createUnifiedSegments> = [] as any;
+    const out: ReturnType<typeof createUnifiedSegments> = [];
     const corrList = Array.from(unifiedCorridors);
     for (const corrId of corrList) {
       const lines = bundle.lines.filter(l => l.corridor_id === corrId);
