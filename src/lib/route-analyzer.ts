@@ -59,7 +59,7 @@ export function analyzeRoutes(
   
   for (const segment of allSegments) {
     // Если через сегмент проходит 3+ линий, считаем его основной веткой
-    if (segment.lines.length >= 3) {
+    if (segment.lines.length >= 3 || (segment.lines.length >= 2 && (new Set(segment.lines.map(l => l.corridor_id)).size === 1))) {
       segment.isMainBranch = true;
       segment.branchType = 'main';
       mainBranches.push(segment);

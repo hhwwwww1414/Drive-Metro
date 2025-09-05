@@ -36,22 +36,29 @@ export default function MetroCanvas({ bundle, activeLines }: Props) {
     return analysis;
   }, [bundle.lines, bundle.linePaths, bundle.cities]);
 
-  // EW-only analysis to support unified corridor rendering
-  const ewLines = useMemo(() => bundle.lines.filter(l => l.corridor_id === 'EW'), [bundle.lines]);
-  const ewLineIds = useMemo(() => new Set(ewLines.map(l => l.line_id)), [ewLines]);
-  const routeAnalysisEW = useMemo(() => {
-    const ewPaths = bundle.linePaths.filter(p => ewLineIds.has(p.line_id));
-    return analyzeRoutes(ewLines, ewPaths, bundle.cities);
-  }, [ewLines, ewLineIds, bundle.linePaths, bundle.cities]);
+  // List of corridors to render as unified (merge overlapping segments)
+  const unifiedCorridors = useMemo(() => new Set(['EW', 'SEVER', 'MUR']), []);
   
   // Создаем объединенные сегменты
   const cityIndex = useMemo(() => mapCities(bundle.cities), [bundle]);
   const unifiedSegments = useMemo(() => {
     return createUnifiedSegments(routeAnalysis, cityIndex);
   }, [routeAnalysis, cityIndex]);
-  const unifiedSegmentsEW = useMemo(() => {
-    return createUnifiedSegments(routeAnalysisEW, cityIndex);
-  }, [routeAnalysisEW, cityIndex]);
+  // Build unified segments for the selected corridors
+  const unifiedSegmentsForCorridors = useMemo(() => {
+    const out: ReturnType<typeof createUnifiedSegments> = [] as any;
+    const corrList = Array.from(unifiedCorridors);
+    for (const corrId of corrList) {
+      const lines = bundle.lines.filter(l => l.corridor_id === corrId);
+      if (!lines.length) continue;
+      const lineIds = new Set(lines.map(l => l.line_id));
+      const paths = bundle.linePaths.filter(p => lineIds.has(p.line_id));
+      const analysis = analyzeRoutes(lines, paths, bundle.cities);
+      const segments = createUnifiedSegments(analysis, cityIndex);
+      out.push(...segments);
+    }
+    return out;
+  }, [bundle.lines, bundle.linePaths, bundle.cities, cityIndex, unifiedCorridors]);
 
   // Maps to know which lines pass through a station (for interchange ticks)
   const linesById = useMemo(() => {
@@ -75,12 +82,12 @@ export default function MetroCanvas({ bundle, activeLines }: Props) {
   const activeLinesNonEW = useMemo(() => {
     const s = new Set<string>();
     activeLines.forEach((id) => {
-      // linesById may not contain id for hidden lines; include them if not EW
+      // linesById may not contain id for hidden lines; include them if not unified
       const line = linesById[id];
-      if (!line || line.corridor_id !== 'EW') s.add(id);
+      if (!line || !unifiedCorridors.has(line.corridor_id)) s.add(id);
     });
     return s;
-  }, [activeLines, linesById]);
+  }, [activeLines, linesById, unifiedCorridors]);
   const parallelEdges = useMemo(
     () => buildParallelEdgesForActive(bundle, activeLinesNonEW),
     [bundle, activeLinesNonEW]
@@ -361,7 +368,7 @@ export default function MetroCanvas({ bundle, activeLines }: Props) {
             );
           })}
           {/* объединенные линии */}
-          {unifiedSegmentsEW.map((segment, i) => {
+          {unifiedSegmentsForCorridors.map((segment, i) => {
             // Проверяем, есть ли активные линии в этом сегменте
             const hasActiveLines = segment.lines.some(line => activeLines.has(line.line_id));
             if (!hasActiveLines) return null;
