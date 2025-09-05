@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { DataBundle, Line } from '@/lib/types';
 import { buildParallelEdges, buildParallelEdgesForActive, mapCities, tryGetXY } from '@/lib/graph';
@@ -37,7 +37,7 @@ export default function MetroCanvas({ bundle, activeLines }: Props) {
   }, [bundle.lines, bundle.linePaths, bundle.cities]);
 
   // List of corridors to render as unified (merge overlapping segments)
-  const unifiedCorridors = useMemo(() => new Set(['EW', 'SEVER', 'MUR']), []);
+  const unifiedCorridors = useMemo(() => new Set(['EW', 'SEVER', 'MUR', 'MSK-CRM', 'VVO-CRM']), []);
   
   // Создаем объединенные сегменты
   const cityIndex = useMemo(() => mapCities(bundle.cities), [bundle]);

@@ -1,4 +1,4 @@
-corridor_id,name,color,order
+﻿corridor_id,name,color,order
 EW,Восток–Запад,#7ED957,10
 SEVER,Север,#009A49,20
 MUR,Мурманск,#00B7FF,30
@@ -9,5 +9,6 @@ VLADIKAV,Владикавказ,#FF8F1F,70
 ORSK,Орск,#BDBDBD,80
 VOLGA,Поволжье,#8B4513,90
 SIBERIA,Сибирь,#6D4C41,100
-CRIMEA,Крым,#7E57C2,110
 KALIN,Калининград,#C0CA33,120
+MSK-CRM,Москва–Крым,#7E57C2,111
+VVO-CRM,Владивосток–Крым,#40E0D0,112

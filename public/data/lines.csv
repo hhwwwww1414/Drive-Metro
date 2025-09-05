@@ -14,10 +14,6 @@ ELI-AST-MAH,M6,Элиста Астрахань Махачкала,ELI-AST,#1558B
 VLG-ELI-VLD,KAVKAZ,Волгоград Элиста Владикавказ,VLG-VLD,#F40009,solid,1,1,230
 VLG-SRT-TLT,KAVKAZ,Волгоград Саратов Тольятти,VLG-TLT,#F40009,solid,1,1,231
 
-VLG-RST,CRIMEA,Волгоград Ростов,VLG-RST,#7E57C2,solid,1,1,300
-RST-CRM,CRIMEA,Ростов Крым,RST-CRM,#B39DDB,solid,1,1,301
-KRD-CRM,CRIMEA,Краснодар Крым,KRD-CRM,#5E35B1,solid,1,1,302
-SRT-VRN-RST,CRIMEA,Саратов Воронеж Ростов,SRT-RST,#7E57C2,solid,1,1,303
 
 MSK-MUR-SPB,MUR,Москва Мурманск Петербург,MSK-MUR-SPB,#00B7FF,solid,1,1,400
 MSK-MUR-YAR,MUR,Москва Мурманск Ярославль,MSK-MUR-YAR,#66D6FF,solid,1,1,401
@@ -49,3 +45,9 @@ KRS-KYZ,SIBERIA,Красноярск Кызыл,KRS-KYZ,#6D4C41,solid,1,1,708
 KAL,KALIN,Москва Петербург Калининград,KAL,#C0CA33,solid,1,1,800
 ORSK,ORSK,Тольятти Орск,ORSK,#BDBDBD,solid,1,1,810
 EKB-MSK-NCH,SEVER,Екатеринбург Москва Челны,EKB-MSK-NCH,#009A49,solid,1,1,612
+MSK-CRM-MEL,MSK-CRM,Москва Крым Мариуполь,MSK-CRM-MEL,#7E57C2,solid,1,1,310
+MSK-CRM-KRC,MSK-CRM,Москва Крым Краснодар,MSK-CRM-KRC,#7E57C2,solid,1,1,311
+VVO-CRM-1,VVO-CRM,Владивосток Крым 1,VVO-CRM-1,#40E0D0,solid,1,1,720
+VVO-CRM-2,VVO-CRM,Владивосток Крым 2,VVO-CRM-2,#40E0D0,solid,1,1,721
+VVO-CRM-3,VVO-CRM,Владивосток Крым 3,VVO-CRM-3,#40E0D0,solid,1,1,722
+VVO-CRM-4,VVO-CRM,Владивосток Крым 4,VVO-CRM-4,#40E0D0,solid,1,1,723

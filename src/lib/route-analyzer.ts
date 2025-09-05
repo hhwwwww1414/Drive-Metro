@@ -1,4 +1,4 @@
-import type { City, Line, LinePath } from './types';
+﻿import type { City, Line, LinePath } from './types';
 import { edgeKey } from './geometry';
 
 export interface RouteSegment {
@@ -150,7 +150,7 @@ export function createSimplifiedRoutes(analysis: RouteAnalysis) {
 // Получает цвет коридора для линии
 function getCorridorColor(line: Line): string {
   // Для основных коридоров используем фиксированные цвета
-  const corridorColors: Record<string, string> = {
+    const corridorColors: Record<string, string> = {
     'EW': '#7ED957',      // Восток-Запад
     'SEVER': '#009A49',   // Север
     'MUR': '#00B7FF',     // Мурманск
@@ -158,9 +158,10 @@ function getCorridorColor(line: Line): string {
     'KAVKAZ': '#F40009',  // Кавказ
     'KRASNODAR': '#CC5500', // Краснодар
     'VLADIKAV': '#FF8F1F',  // Владикавказ
-    'VOLGA': '#8B4513',   // Поволжье
+    'VOLGA': '#8B4513',   // Волга
     'SIBERIA': '#6D4C41', // Сибирь
-    'CRIMEA': '#7E57C2',  // Крым
+    'MSK-CRM': '#7E57C2',  // Москва–Крым
+    'VVO-CRM': '#40E0D0',  // Владивосток–Крым
     'KALIN': '#C0CA33',   // Калининград
   };
   
