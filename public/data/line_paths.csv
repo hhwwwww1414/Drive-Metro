@@ -173,14 +173,6 @@ EKB-MSK-KIR,1,3,Киров
 EKB-MSK-KIR,1,4,Ярославль
 EKB-MSK-KIR,1,5,Москва
 
-EKB-MSK-IZH,1,1,Екатеринбург
-EKB-MSK-IZH,1,2,Пермь
-EKB-MSK-IZH,1,3,Ижевск
-EKB-MSK-IZH,1,4,Казань
-EKB-MSK-IZH,1,5,Чебоксары
-EKB-MSK-IZH,1,6,Нижний Новгород
-EKB-MSK-IZH,1,7,Владимир
-EKB-MSK-IZH,1,8,Москва
 
 NRG-SRG,1,1,Новый Уренгой
 NRG-SRG,1,2,Сургут
@@ -313,3 +305,19 @@ KAL,1,3,Калининград
 ORSK,1,1,Тольятти
 ORSK,1,2,Оренбург
 ORSK,1,3,Орск
+EKB-MSK-IZH,1,1,Екатеринбург
+EKB-MSK-IZH,1,2,Пермь
+EKB-MSK-IZH,1,3,Ижевск
+EKB-MSK-IZH,1,4,Набережные Челны
+EKB-MSK-IZH,1,5,Казань
+EKB-MSK-IZH,1,6,Чебоксары
+EKB-MSK-IZH,1,7,Нижний Новгород
+EKB-MSK-IZH,1,8,Владимир
+EKB-MSK-IZH,1,9,Москва
+EKB-MSK-NCH,1,1,Екатеринбург
+EKB-MSK-NCH,1,2,Набережные Челны
+EKB-MSK-NCH,1,3,Казань
+EKB-MSK-NCH,1,4,Чебоксары
+EKB-MSK-NCH,1,5,Нижний Новгород
+EKB-MSK-NCH,1,6,Владимир
+EKB-MSK-NCH,1,7,Москва
