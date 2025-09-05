@@ -84,10 +84,10 @@ body {
 
 /* Улучшенные стили для интерактивности */
 .map-svg path:hover {
-  stroke-width: 8px !important;
+  /* keep width stable; subtle emphasis via opacity is handled inline */
 }
 
 .map-svg circle:hover {
-  stroke-width: 2px !important;
-  stroke: #333 !important;
+  stroke-width: 1.6px;
+  stroke: #333;
 }
