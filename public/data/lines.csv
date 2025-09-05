@@ -13,7 +13,8 @@ ELI-AST-MAH,M6,Элиста Астрахань Махачкала,ELI-AST,#FFCB3
 
 VLG-ELI-VLD,KAVKAZ,Волгоград Элиста Владикавказ,VLG-VLD,#8E479C,solid,1,1,230
 VLG-SRT-TLT,KAVKAZ,Волгоград Саратов Тольятти,VLG-TLT,#8E479C,solid,1,1,231
-
+VLG-ELI-VLD-1,KAVKAZ,Волгоград Элиста Махачкала,VLG-VLD-1,#8E479C,solid,1,1,232
+VLG-ELI-VLD-2,KAVKAZ,Волгоград Элиста Махачкала 1,VLG-VLD-2,#8E479C,solid,1,1,233
 
 MSK-MUR-SPB,MUR,Москва Мурманск Петербург,MSK-MUR-SPB,#B0BFE7,solid,1,1,400
 MSK-MUR-YAR,MUR,Москва Мурманск Ярославль,MSK-MUR-YAR,#B0BFE7,solid,1,1,401
