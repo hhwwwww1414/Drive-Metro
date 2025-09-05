@@ -35,12 +35,23 @@ export default function MetroCanvas({ bundle, activeLines }: Props) {
     
     return analysis;
   }, [bundle.lines, bundle.linePaths, bundle.cities]);
+
+  // EW-only analysis to support unified corridor rendering
+  const ewLines = useMemo(() => bundle.lines.filter(l => l.corridor_id === 'EW'), [bundle.lines]);
+  const ewLineIds = useMemo(() => new Set(ewLines.map(l => l.line_id)), [ewLines]);
+  const routeAnalysisEW = useMemo(() => {
+    const ewPaths = bundle.linePaths.filter(p => ewLineIds.has(p.line_id));
+    return analyzeRoutes(ewLines, ewPaths, bundle.cities);
+  }, [ewLines, ewLineIds, bundle.linePaths, bundle.cities]);
   
   // Создаем объединенные сегменты
   const cityIndex = useMemo(() => mapCities(bundle.cities), [bundle]);
   const unifiedSegments = useMemo(() => {
     return createUnifiedSegments(routeAnalysis, cityIndex);
   }, [routeAnalysis, cityIndex]);
+  const unifiedSegmentsEW = useMemo(() => {
+    return createUnifiedSegments(routeAnalysisEW, cityIndex);
+  }, [routeAnalysisEW, cityIndex]);
 
   // Maps to know which lines pass through a station (for interchange ticks)
   const linesById = useMemo(() => {
@@ -61,9 +72,18 @@ export default function MetroCanvas({ bundle, activeLines }: Props) {
   // Старая система для совместимости (можно будет убрать)
   // Recompute parallel edges based only on visible lines so
   // a single visible line goes center-to-center with no offset
+  const activeLinesNonEW = useMemo(() => {
+    const s = new Set<string>();
+    activeLines.forEach((id) => {
+      // linesById may not contain id for hidden lines; include them if not EW
+      const line = linesById[id];
+      if (!line || line.corridor_id !== 'EW') s.add(id);
+    });
+    return s;
+  }, [activeLines, linesById]);
   const parallelEdges = useMemo(
-    () => buildParallelEdgesForActive(bundle, activeLines),
-    [bundle, activeLines]
+    () => buildParallelEdgesForActive(bundle, activeLinesNonEW),
+    [bundle, activeLinesNonEW]
   );
 
   // вычислим рамку данных (для fit-to-data)
@@ -341,7 +361,7 @@ export default function MetroCanvas({ bundle, activeLines }: Props) {
             );
           })}
           {/* объединенные линии */}
-          {false && unifiedSegments.map((segment, i) => {
+          {unifiedSegmentsEW.map((segment, i) => {
             // Проверяем, есть ли активные линии в этом сегменте
             const hasActiveLines = segment.lines.some(line => activeLines.has(line.line_id));
             if (!hasActiveLines) return null;

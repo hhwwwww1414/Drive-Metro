@@ -1,4 +1,4 @@
-line_id,variant_id,seq,city_id
+﻿line_id,variant_id,seq,city_id
 EW-1,1,1,Владивосток
 EW-1,1,2,Уссурийск
 EW-1,1,3,Хабаровск
@@ -46,20 +46,6 @@ EW-2,1,21,Нижний Новгород
 EW-2,1,22,Владимир
 EW-2,1,23,Москва
 
-OMSK-VVO,1,1,Омск
-OMSK-VVO,1,2,Новосибирск
-OMSK-VVO,1,3,Кемерово
-OMSK-VVO,1,4,Красноярск
-OMSK-VVO,1,5,Иркутск
-OMSK-VVO,1,6,Улан-Удэ
-OMSK-VVO,1,7,Чита
-OMSK-VVO,1,8,Сковородино
-OMSK-VVO,1,9,Свободный
-OMSK-VVO,1,10,Благовещенск
-OMSK-VVO,1,11,Биробиджан
-OMSK-VVO,1,12,Хабаровск
-OMSK-VVO,1,13,Уссурийск
-OMSK-VVO,1,14,Владивосток
 
 MSK-RSTDN,1,1,Москва
 MSK-RSTDN,1,2,Воронеж

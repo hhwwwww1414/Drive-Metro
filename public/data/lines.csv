@@ -1,7 +1,6 @@
-line_id,corridor_id,name,short_name,color,style,bidirectional,visible_default,draw_order
+﻿line_id,corridor_id,name,short_name,color,style,bidirectional,visible_default,draw_order
 EW-1,EW,Восток–Запад Тюмень,EW-1,#52C234,solid,1,1,100
 EW-2,EW,Восток–Запад Уфа,EW-2,#7ED957,solid,1,1,101
-OMSK-VVO,EW,Омск Владивосток,EW-VVO,#52C234,solid,1,1,102
 
 MSK-RSTDN,KRASNODAR,Москва Ростов,MSK-RST,#CC5500,solid,1,1,200
 RST-KRD,KRASNODAR,Ростов Краснодар,RST-KRD,#FF7A1A,solid,1,1,201
