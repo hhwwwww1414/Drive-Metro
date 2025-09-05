@@ -23,9 +23,6 @@ SYK-YAR-MSK,VOLGA,Сыктывкар Ярославль Москва,SYK-MSK,#19
 YOL-CHB-MSK,VOLGA,Йошкар-Ола Москва,YOL-MSK,#19C1F3,solid,1,1,501
 MSK-VOLGA-TLT,VOLGA,Москва Тольятти Волга,MSK-TLTVOL,#19C1F3,solid,1,1,502
 MSK-TLT,VOLGA,Москва Тольятти,MSK-TLT,#19C1F3,solid,1,1,503
-OMSK-VLG,VOLGA,Омск Волгоград,OMSK-VLG,#19C1F3,solid,1,1,504
-OMSK-NCH-IZH,VOLGA,Омск Челны Тюмень,OMSK-NCH-TMN,#19C1F3,dashed,1,1,505
-OMSK-NCH-UFA,VOLGA,Омск Челны Уфа,OMSK-NCH-UFA,#19C1F3,dotted,1,1,506
 
 SRG-EKB,SEVER,Сургут Екатеринбург,SRG-EKB,#44B85C,solid,1,1,600
 EKB-MSK-KIR,SEVER,Екатеринбург Москва Киров,EKB-MSK-KIR,#44B85C,solid,1,1,601
@@ -39,10 +36,9 @@ AB-1,SIBERIA,Кызыл Абакан Барнаул,AB-1,#79CDCD,solid,1,1,700
 NVKZ,SIBERIA,Новокузнецк Кемерово,NVKZ,#79CDCD,solid,1,1,701
 BIYSK,SIBERIA,Бийск Барнаул,BIYSK,#79CDCD,solid,1,1,702
 CHT-MAG,SIBERIA,Сковородино Магадан,CHT-MAG,#79CDCD,solid,1,1,704
-NR-VL,SIBERIA,Уренгой Владивосток,NR-VL,#79CDCD,solid,1,1,705
-TOM-NOVK,SIBERIA,Томск Новокузнецк,TOM-NOVK,#79CDCD,solid,1,1,706
-NSK-GALT,SIBERIA,Новосибирск Горно-Алтайск,NSK-GALT,#79CDCD,solid,1,1,707
-KRS-KYZ,SIBERIA,Красноярск Кызыл,KRS-KYZ,#79CDCD,solid,1,1,708
+TOM-NOVK,SIBERIA,Томск Новокузнецк,TOM-NOVK,#79CDCD,solid,1,1,705
+NSK-GALT,SIBERIA,Новосибирск Горно-Алтайск,NSK-GALT,#79CDCD,solid,1,1,706
+KRS-KYZ,SIBERIA,Красноярск Кызыл,KRS-KYZ,#79CDCD,solid,1,1,707
 
 KAL,KALIN,Москва Петербург Калининград,KAL,#B3D445,solid,1,1,800
 ORSK,ORSK,Тольятти Орск,ORSK,#27303F,solid,1,1,810
