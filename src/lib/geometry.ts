@@ -77,10 +77,17 @@ export function calculateParallelOffsets(edges: Edge[]): ParallelEdge[] {
         const center = (count - 1) / 2;
         offset = (i - center) * spacing;
       }
-      
+
+      const edge = sortedEdges[i];
+      // If the edge direction is reversed relative to the canonical
+      // segment order, flip the offset so that parallel lines are drawn on
+      // opposite sides of the shared segment regardless of their order in
+      // the CSV paths.
+      const direction = edge.a < edge.b ? 1 : -1;
+
       result.push({
-        ...sortedEdges[i],
-        offset,
+        ...edge,
+        offset: offset * direction,
       });
     }
   }
