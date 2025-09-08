@@ -267,8 +267,8 @@ VVO-KRSNDR-1,1,17,Курган
 VVO-KRSNDR-1,1,18,Челябинск
 VVO-KRSNDR-1,1,19,Уфа
 VVO-KRSNDR-1,1,20,Тольятти
-VVO-KRSNDR-1,1,21,Саратов
-VVO-KRSNDR-1,1,22,Елец
+VVO-KRSNDR-1,1,21,Елец
+VVO-KRSNDR-1,1,22,Саратов
 VVO-KRSNDR-1,1,23,Воронеж
 VVO-KRSNDR-1,1,24,Каменск-Шахтинский
 VVO-KRSNDR-1,1,25,Ростов-на-Дону
@@ -296,9 +296,8 @@ VVO-KRSNDR-2,1,19,Уфа
 VVO-KRSNDR-2,1,20,Тольятти
 VVO-KRSNDR-2,1,21,Саратов
 VVO-KRSNDR-2,1,22,Волгоград
-VVO-KRSNDR-2,1,23,Каменск-Шахтинский
-VVO-KRSNDR-2,1,24,Ростов-на-Дону
-VVO-KRSNDR-2,1,25,Краснодар
+VVO-KRSNDR-2,1,23,Ростов-на-Дону
+VVO-KRSNDR-2,1,24,Краснодар
 
 VVO-KRSNDR-3,1,1,Владивосток
 VVO-KRSNDR-3,1,2,Уссурийск
@@ -374,4 +373,5 @@ KRD-NOV-GEL-TUA-SOC,1,5,Сочи
 UFA-MAG,1,1,Уфа
 UFA-MAG,1,2,Магнитогорск
 EKB-NTG,1,1,Екатеринбург
+
 EKB-NTG,1,2,Нижний Тагил
