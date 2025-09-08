@@ -49,3 +49,8 @@ VVO-KRSNDR-1,VVO-KRSNDR,Владивосток Краснодар 1,VVO-KRSNDR-1
 VVO-KRSNDR-2,VVO-KRSNDR,Владивосток Краснодар 2,VVO-KRSNDR-2,#DE64A1,solid,1,1,721
 VVO-KRSNDR-3,VVO-KRSNDR,Владивосток Краснодар 3,VVO-KRSNDR-3,#DE64A1,solid,1,1,721
 VVO-KRSNDR-4,VVO-KRSNDR,Владивосток Краснодар 4,VVO-KRSNDR-4,#DE64A1,solid,1,1,721
+MNSK-MSK,MNSK-MSK,Минск Москва,MNSK-MSK,#808080,solid,1,1,900
+MSK-BLG,MSK-BLG,Москва Белгород,MSK-BLG,#00FF00,solid,1,1,901
+KRD-NOV-GEL-TUA-SOC,BIG-CITY,Краснодар Новороссийск Геленджик Туапсе Сочи,KRD-SOC,#555555,solid,1,1,902
+UFA-MAG,BIG-CITY,Уфа Магнитогорск,UFA-MAG,#555555,solid,1,1,903
+EKB-NTG,BIG-CITY,Екатеринбург Нижний Тагил,EKB-NTG,#555555,solid,1,1,904
