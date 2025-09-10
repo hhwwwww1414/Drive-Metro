@@ -2,12 +2,15 @@
 import { useEffect, useState } from 'react';
 import Legend from '@/components/Legend';
 import MetroCanvas from '@/components/MetroCanvas';
+import RouteSelector from '@/components/RouteSelector';
 import { DataBundle } from '@/lib/types';
 import { loadData } from '@/lib/csv';
+import type { RouteSegment } from '@/lib/router';
 
 export default function Page() {
   const [bundle, setBundle] = useState<DataBundle | null>(null);
   const [activeLines, setActiveLines] = useState<Set<string>>(new Set());
+  const [currentRoute, setCurrentRoute] = useState<RouteSegment[]>([]);
 
   useEffect(() => {
     loadData()
@@ -51,7 +54,8 @@ export default function Page() {
           setActiveLines(next);
         }}
       />
-      <MetroCanvas bundle={bundle} activeLines={activeLines} />
+      <RouteSelector bundle={bundle} onRoute={setCurrentRoute} />
+      <MetroCanvas bundle={bundle} activeLines={activeLines} currentRoute={currentRoute} />
     </>
   );
 }
