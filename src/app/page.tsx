@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import Legend from '@/components/Legend';
 import MetroCanvas from '@/components/MetroCanvas';
 import RouteSelector from '@/components/RouteSelector';
+import RouteSummary from '@/components/RouteSummary';
 import { DataBundle } from '@/lib/types';
 import { loadData } from '@/lib/csv';
 import type { RouteSegment } from '@/lib/router';
@@ -56,6 +57,7 @@ export default function Page() {
       />
       <RouteSelector bundle={bundle} onRoute={setCurrentRoute} />
       <MetroCanvas bundle={bundle} activeLines={activeLines} currentRoute={currentRoute} />
+      <RouteSummary bundle={bundle} route={currentRoute} />
     </>
   );
 }
