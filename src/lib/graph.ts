@@ -1,5 +1,6 @@
 import type { City, DataBundle, Line } from './types';
 import { calculateParallelOffsets, edgeKey, type ParallelEdge } from './geometry';
+import { buildSegmentsFromPath, nodeKey, type RouteSegment } from './router';
 
 export type Edge = {
   a: string;       // city_id
@@ -81,6 +82,101 @@ export function buildParallelEdgesForActive(
 export function buildAllEdgesSafe(bundle?: DataBundle | null) {
   if (!bundle) return [];
   return buildAllEdges(bundle);
+}
+
+// Поиск кратчайшего маршрута с минимальным числом пересадок
+export function findRoute(
+  bundle: DataBundle,
+  startId: string,
+  endId: string
+): RouteSegment[] {
+  if (startId === endId) return [];
+
+  const edges = buildAllEdges(bundle);
+  const graph = new Map<string, Array<{ to: string; w: 0 | 1 }>>();
+  const cityLines = new Map<string, Set<string>>();
+
+  function addEdge(from: string, to: string, w: 0 | 1) {
+    if (!graph.has(from)) graph.set(from, []);
+    graph.get(from)!.push({ to, w });
+  }
+
+  function addCityLine(city: string, line: string) {
+    if (!cityLines.has(city)) cityLines.set(city, new Set());
+    cityLines.get(city)!.add(line);
+  }
+
+  // ребра без пересадок
+  for (const e of edges) {
+    const a = nodeKey(e.a, e.line.line_id);
+    const b = nodeKey(e.b, e.line.line_id);
+    addEdge(a, b, 0);
+    addEdge(b, a, 0);
+    addCityLine(e.a, e.line.line_id);
+    addCityLine(e.b, e.line.line_id);
+  }
+
+  // пересадки в узлах
+  for (const [city, lines] of cityLines) {
+    const ls = Array.from(lines);
+    for (let i = 0; i < ls.length; i++) {
+      for (let j = i + 1; j < ls.length; j++) {
+        const n1 = nodeKey(city, ls[i]);
+        const n2 = nodeKey(city, ls[j]);
+        addEdge(n1, n2, 1);
+        addEdge(n2, n1, 1);
+      }
+    }
+  }
+
+  const startLines = cityLines.get(startId);
+  const endLines = cityLines.get(endId);
+  if (!startLines || !endLines) return [];
+
+  const startNodes = Array.from(startLines, (l) => nodeKey(startId, l));
+  const endNodes = new Set(Array.from(endLines, (l) => nodeKey(endId, l)));
+
+  const dist = new Map<string, number>();
+  const prev = new Map<string, string>();
+  const deque: string[] = [];
+  for (const n of startNodes) {
+    dist.set(n, 0);
+    deque.push(n);
+  }
+
+  let target: string | null = null;
+  while (deque.length && target === null) {
+    const cur = deque.shift()!;
+    if (endNodes.has(cur)) {
+      target = cur;
+      break;
+    }
+    const neighbors = graph.get(cur) || [];
+    for (const { to, w } of neighbors) {
+      const nd = dist.get(cur)! + w;
+      if (nd < (dist.get(to) ?? Number.POSITIVE_INFINITY)) {
+        dist.set(to, nd);
+        prev.set(to, cur);
+        if (w === 0) {
+          deque.unshift(to);
+        } else {
+          deque.push(to);
+        }
+      }
+    }
+  }
+
+  if (!target) return [];
+
+  const path: string[] = [];
+  let cur: string | undefined = target;
+  while (cur) {
+    path.push(cur);
+    cur = prev.get(cur);
+  }
+  path.reverse();
+
+  return buildSegmentsFromPath(path, bundle);
 }
 
 // очень простой раскладчик подписей (без коллизий, но с оффсетами)
