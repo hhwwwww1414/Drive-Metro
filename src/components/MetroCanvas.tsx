@@ -1,18 +1,20 @@
 ﻿'use client';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { DataBundle, Line } from '@/lib/types';
-import { buildParallelEdges, buildParallelEdgesForActive, mapCities, tryGetXY } from '@/lib/graph';
-import { placeLabels, type LabelPlacement } from '@/lib/label-placer';
-import { createLinePath, createLeaderPath, type Point } from '@/lib/geometry';
+import { buildParallelEdgesForActive, mapCities, tryGetXY } from '@/lib/graph';
+import { placeLabels } from '@/lib/label-placer';
+import { createLinePath, createLeaderPath, edgeKey } from '@/lib/geometry';
 import { METRO_CONFIG } from '@/lib/metro-config';
 import { analyzeRoutes, createUnifiedSegments } from '@/lib/route-analyzer';
+import type { RouteSegment } from '@/lib/router';
 
 type Props = {
   bundle: DataBundle;
   activeLines: Set<string>;
+  currentRoute?: RouteSegment[];
 };
 
-export default function MetroCanvas({ bundle, activeLines }: Props) {
+export default function MetroCanvas({ bundle, activeLines, currentRoute: route = [] }: Props) {
   // Анализируем маршруты для выделения общих участков
   const routeAnalysis = useMemo(() => {
     const analysis = analyzeRoutes(bundle.lines, bundle.linePaths, bundle.cities);
@@ -41,10 +43,6 @@ export default function MetroCanvas({ bundle, activeLines }: Props) {
   
   // Создаем объединенные сегменты
   const cityIndex = useMemo(() => mapCities(bundle.cities), [bundle]);
-  const unifiedSegments = useMemo(() => {
-    return createUnifiedSegments(routeAnalysis, cityIndex);
-  }, [routeAnalysis, cityIndex]);
-  // Build unified segments for the selected corridors
   const unifiedSegmentsForCorridors = useMemo(() => {
     const out: ReturnType<typeof createUnifiedSegments> = [];
     const corrList = Array.from(unifiedCorridors);
@@ -102,11 +100,33 @@ export default function MetroCanvas({ bundle, activeLines }: Props) {
   const [scale, setScale] = useState(1);
   const [tx, setTx] = useState(0);
   const [ty, setTy] = useState(0);
-  
+
   // Состояние для подсветки
   const [highlightedLine, setHighlightedLine] = useState<string | null>(null);
   const [hoveredCity, setHoveredCity] = useState<string | null>(null);
-  const isSingleLine = useMemo(() => activeLines.size === 1, [activeLines]);
+  const [currentRoute, setCurrentRoute] = useState<RouteSegment[]>(route);
+  useEffect(() => { setCurrentRoute(route); }, [route]);
+
+  const routeSegments = useMemo(() => {
+    const keys = new Set<string>();
+    for (const seg of currentRoute) {
+      if (!seg.transfer) {
+        keys.add(`${edgeKey(seg.from, seg.to)}::${seg.line.line_id}`);
+      }
+    }
+    return keys;
+  }, [currentRoute]);
+
+  const routeCities = useMemo(() => {
+    const set = new Set<string>();
+    for (const seg of currentRoute) {
+      set.add(seg.from);
+      set.add(seg.to);
+    }
+    return set;
+  }, [currentRoute]);
+
+  const hasRoute = currentRoute.length > 0;
   
   // Обработчик клика по линии для подсветки маршрута
   const handleLineClick = useCallback((lineId: string) => {
@@ -170,6 +190,7 @@ export default function MetroCanvas({ bundle, activeLines }: Props) {
       if (e.key === 'Escape') {
         setHighlightedLine(null);
         setHoveredCity(null);
+        setCurrentRoute([]);
       }
     };
     
@@ -319,12 +340,20 @@ export default function MetroCanvas({ bundle, activeLines }: Props) {
             const b = tryGetXY(edge.b, cityIndex);
             if (!a || !b) return null;
 
-            const isHighlighted = highlightedLine === edge.line.line_id;
-            const isDimmed = !!highlightedLine && highlightedLine !== edge.line.line_id;
+            const segKey = `${edgeKey(edge.a, edge.b)}::${edge.line.line_id}`;
+            const inRoute = routeSegments.has(segKey);
+            const isHighlighted = inRoute || highlightedLine === edge.line.line_id;
+            const isDimmed = highlightedLine
+              ? highlightedLine !== edge.line.line_id
+              : hasRoute && !inRoute;
 
             const dash = edge.line.style === 'dashed' ? '6,6' :
                          edge.line.style === 'dotted' ? '2,8' : undefined;
-            const strokeWidth = isHighlighted ? METRO_CONFIG.LINE_WIDTH_HIGHLIGHTED : METRO_CONFIG.LINE_WIDTH;
+            const strokeWidth = inRoute
+              ? METRO_CONFIG.LINE_WIDTH_HIGHLIGHTED + 1
+              : isHighlighted
+                ? METRO_CONFIG.LINE_WIDTH_HIGHLIGHTED
+                : METRO_CONFIG.LINE_WIDTH;
             const underStroke = strokeWidth + 1.5;
 
             const path = createLinePath(a, b, edge.offset);
@@ -416,6 +445,7 @@ export default function MetroCanvas({ bundle, activeLines }: Props) {
           {bundle.cities.map((city) => {
             const isHovered = hoveredCity === city.city_id;
             const isHub = city.is_hub === 1;
+            const isRouteCity = routeCities.has(city.city_id);
             
             return (
               <g key={city.city_id}>
@@ -430,10 +460,10 @@ export default function MetroCanvas({ bundle, activeLines }: Props) {
                     <circle
                       cx={city.x}
                       cy={city.y}
-                      r={METRO_CONFIG.HUB_OUTER_RADIUS}
-                      fill="#fff"
+                      r={METRO_CONFIG.HUB_OUTER_RADIUS + (isRouteCity ? 1 : 0)}
+                      fill={isRouteCity ? '#fde68a' : '#fff'}
                       stroke="#111"
-                      strokeWidth={isHovered ? 3 : 2}
+                      strokeWidth={isHovered || isRouteCity ? 3 : 2}
                       className="non-scaling"
                     />
                     {(() => {
@@ -470,10 +500,10 @@ export default function MetroCanvas({ bundle, activeLines }: Props) {
                   <circle
                     cx={city.x}
                     cy={city.y}
-                    r={METRO_CONFIG.STATION_RADIUS}
-                    fill="#fff"
+                    r={isRouteCity ? METRO_CONFIG.STATION_RADIUS * 1.5 : METRO_CONFIG.STATION_RADIUS}
+                    fill={isRouteCity ? '#fde68a' : '#fff'}
                     stroke={"#111"}
-                    strokeWidth={1.25}
+                    strokeWidth={isRouteCity || isHovered ? 2 : 1.25}
                     className="non-scaling"
                     style={{ cursor: 'pointer' }}
                     onMouseEnter={() => setHoveredCity(city.city_id)}
