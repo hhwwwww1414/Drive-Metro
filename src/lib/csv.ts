@@ -34,6 +34,7 @@ function toCities(rows: Record<string, string>[]): City[] {
     x: Number(r.x),
     y: Number(r.y),
     is_hub: Number(r.is_hub) || 0,
+    is_corridor_hub: Number(r.is_corridor_hub) || 0,
   }));
 }
 
