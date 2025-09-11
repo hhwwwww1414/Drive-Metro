@@ -280,7 +280,21 @@ export function findRoutes(
   const endNodes = new Set(Array.from(endLines, (l) => nodeKey(endId, l)));
 
   const paths = kShortestPaths(graph, startNodes, endNodes, k);
-  return paths.map((p) => buildSegmentsFromPath(p.nodes, bundle));
+  const seen = new Set<string>();
+  const routes: RouteSegment[][] = [];
+
+  for (const p of paths) {
+    const segments = buildSegmentsFromPath(p.nodes, bundle);
+    const key = segments
+      .map((s) => `${edgeKey(s.from, s.to)}::${s.line.line_id}`)
+      .join('|');
+    if (!seen.has(key)) {
+      seen.add(key);
+      routes.push(segments);
+    }
+  }
+
+  return routes;
 }
 
 // Сохранённая версия для совместимости: возвращает только первый маршрут
