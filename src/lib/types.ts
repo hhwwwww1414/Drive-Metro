@@ -4,6 +4,7 @@ export type City = {
   x: number;
   y: number;
   is_hub: number; // 1 = пересадочный узел, 0 = обычная станция
+  is_corridor_hub: number; // 1 = пересадка между коридорами разрешена
 };
 
 export type Corridor = {

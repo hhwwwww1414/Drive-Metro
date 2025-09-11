@@ -2,23 +2,6 @@ import type { City, DataBundle, Line } from './types';
 import { calculateParallelOffsets, edgeKey, type ParallelEdge } from './geometry';
 import { buildSegmentsFromPath, nodeKey, type RouteSegment } from './router';
 
-// города, в которых допускается пересадка между коридорами
-// если город не входит в список, маршрут старается оставаться
-// в пределах одного коридора
-const CORRIDOR_HUBS = new Set([
-  'Москва',
-  'Ростов-на-Дону',
-  'Тольятти',
-  'Набережные Челны',
-  'Казань',
-  'Уфа',
-  'Екатеринбург',
-  'Тюмень',
-  'Новосибирск',
-  'Омск',
-  'Красноярск',
-]);
-
 export type Edge = {
   a: string;       // city_id
   b: string;       // city_id
@@ -118,6 +101,12 @@ function buildWeightedGraph(bundle: DataBundle): {
   cityLines: Map<string, Set<string>>;
 } {
   const edges = buildAllEdges(bundle);
+  // города, в которых допускается пересадка между коридорами
+  const corridorHubs = new Set(
+    bundle.cities
+      .filter((c) => c.is_corridor_hub === 1)
+      .map((c) => c.city_id)
+  );
   const graph: WeightedGraph = new Map();
   const cityLines = new Map<string, Set<string>>();
   const lineCorridor = new Map<string, string>();
@@ -160,7 +149,7 @@ function buildWeightedGraph(bundle: DataBundle): {
           const cost: Cost = { transfers: 0, length: 0 };
           addEdge(n1, n2, cost);
           addEdge(n2, n1, cost);
-        } else if (CORRIDOR_HUBS.has(city)) {
+        } else if (corridorHubs.has(city)) {
           const cost: Cost = { transfers: 1, length: 0 };
           addEdge(n1, n2, cost);
           addEdge(n2, n1, cost);
