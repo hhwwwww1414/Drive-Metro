@@ -33,7 +33,7 @@ body {
 /* Floating route selection panel */
 .route-panel {
   position: fixed;
-  bottom: 12px;
+  top: 12px;        /* вместо bottom */
   right: 12px;
   width: calc(100% - 24px);
   max-width: 360px;
