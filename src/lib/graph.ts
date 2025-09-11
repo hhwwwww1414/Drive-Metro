@@ -2,6 +2,23 @@ import type { City, DataBundle, Line } from './types';
 import { calculateParallelOffsets, edgeKey, type ParallelEdge } from './geometry';
 import { buildSegmentsFromPath, nodeKey, type RouteSegment } from './router';
 
+// города, в которых допускается пересадка между коридорами
+// если город не входит в список, маршрут старается оставаться
+// в пределах одного коридора
+const CORRIDOR_HUBS = new Set([
+  'Москва',
+  'Ростов-на-Дону',
+  'Тольятти',
+  'Набережные Челны',
+  'Казань',
+  'Уфа',
+  'Екатеринбург',
+  'Тюмень',
+  'Новосибирск',
+  'Омск',
+  'Красноярск',
+]);
+
 export type Edge = {
   a: string;       // city_id
   b: string;       // city_id
@@ -103,6 +120,8 @@ function buildWeightedGraph(bundle: DataBundle): {
   const edges = buildAllEdges(bundle);
   const graph: WeightedGraph = new Map();
   const cityLines = new Map<string, Set<string>>();
+  const lineCorridor = new Map<string, string>();
+  for (const l of bundle.lines) lineCorridor.set(l.line_id, l.corridor_id);
 
   function addEdge(from: string, to: string, cost: Cost) {
     if (!graph.has(from)) graph.set(from, []);
@@ -130,11 +149,22 @@ function buildWeightedGraph(bundle: DataBundle): {
     const ls = Array.from(lines);
     for (let i = 0; i < ls.length; i++) {
       for (let j = i + 1; j < ls.length; j++) {
-        const n1 = nodeKey(city, ls[i]);
-        const n2 = nodeKey(city, ls[j]);
-        const cost: Cost = { transfers: 1, length: 0 };
-        addEdge(n1, n2, cost);
-        addEdge(n2, n1, cost);
+        const l1 = ls[i];
+        const l2 = ls[j];
+        const c1 = lineCorridor.get(l1);
+        const c2 = lineCorridor.get(l2);
+        const n1 = nodeKey(city, l1);
+        const n2 = nodeKey(city, l2);
+
+        if (c1 === c2) {
+          const cost: Cost = { transfers: 0, length: 0 };
+          addEdge(n1, n2, cost);
+          addEdge(n2, n1, cost);
+        } else if (CORRIDOR_HUBS.has(city)) {
+          const cost: Cost = { transfers: 1, length: 0 };
+          addEdge(n1, n2, cost);
+          addEdge(n2, n1, cost);
+        }
       }
     }
   }
