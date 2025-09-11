@@ -64,6 +64,13 @@ export default function Page() {
           if (rts[0]) {
             setSelectedIdx(0);
             setCurrentRoute(rts[0]);
+            setActiveLines((prev) => {
+              const next = new Set(prev);
+              for (const seg of rts[0]) {
+                if (!seg.transfer) next.add(seg.line.line_id);
+              }
+              return next;
+            });
           } else {
             setSelectedIdx(null);
             setCurrentRoute([]);
@@ -81,7 +88,15 @@ export default function Page() {
         selected={selectedIdx}
         onSelect={(idx) => {
           setSelectedIdx(idx);
-          setCurrentRoute(routes[idx]);
+          const route = routes[idx];
+          setCurrentRoute(route);
+          setActiveLines((prev) => {
+            const next = new Set(prev);
+            for (const seg of route) {
+              if (!seg.transfer) next.add(seg.line.line_id);
+            }
+            return next;
+          });
         }}
       />
     </>
