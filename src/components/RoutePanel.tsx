@@ -1,48 +1,23 @@
 'use client';
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { DataBundle } from '@/lib/types';
 import { findRoutes } from '@/lib/graph';
 import type { RouteSegment } from '@/lib/router';
 
 type Props = {
   bundle: DataBundle;
-  onRoute: (route: RouteSegment[]) => void;
+  onRoutes: (routes: RouteSegment[][]) => void;
 };
 
-export default function RoutePanel({ bundle, onRoute }: Props) {
+export default function RoutePanel({ bundle, onRoutes }: Props) {
   const [from, setFrom] = useState('');
   const [to, setTo] = useState('');
-  const [routes, setRoutes] = useState<RouteSegment[][]>([]);
-  const [selected, setSelected] = useState<number | null>(null);
-
-  const cityIndex = useMemo(() => {
-    const idx: Record<string, string> = {};
-    for (const c of bundle.cities) idx[c.city_id] = c.label || c.city_id;
-    return idx;
-  }, [bundle.cities]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!from || !to) return;
     const found = findRoutes(bundle, from, to);
-    setRoutes(found);
-    if (found[0]) {
-      setSelected(0);
-      onRoute(found[0]);
-    }
-  };
-
-  const selectRoute = (idx: number) => {
-    setSelected(idx);
-    onRoute(routes[idx]);
-  };
-
-  const describe = (route: RouteSegment[]) => {
-    const transfers = route.filter((s) => s.transfer).length;
-    const legs = route.filter((s) => !s.transfer).length;
-    const start = cityIndex[route[0].from] ?? route[0].from;
-    const end = cityIndex[route[route.length - 1].to] ?? route[route.length - 1].to;
-    return `${start} → ${end} · пересадок: ${transfers}, плеч: ${legs}`;
+    onRoutes(found);
   };
 
   return (
@@ -121,28 +96,6 @@ export default function RoutePanel({ bundle, onRoute }: Props) {
           Найти
         </button>
       </form>
-      {routes.length > 0 && (
-        <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
-          {routes.map((r, idx) => (
-            <button
-              key={idx}
-              onClick={() => selectRoute(idx)}
-              style={{
-                textAlign: 'left',
-                padding: '8px 12px',
-                borderRadius: 8,
-                border: '1px solid #4b5563',
-                background: selected === idx ? '#3f3f46' : '#2d2d2d',
-                color: '#fff',
-                fontSize: 14,
-                cursor: 'pointer',
-              }}
-            >
-              {describe(r)}
-            </button>
-          ))}
-        </div>
-      )}
     </div>
   );
 }

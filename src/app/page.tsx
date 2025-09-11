@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import Legend from '@/components/Legend';
 import MetroCanvas from '@/components/MetroCanvas';
 import RoutePanel from '@/components/RoutePanel';
-import RouteSummary from '@/components/RouteSummary';
+import RouteResultList from '@/components/RouteResultList';
 import { DataBundle } from '@/lib/types';
 import { loadData } from '@/lib/csv';
 import type { RouteSegment } from '@/lib/router';
@@ -11,6 +11,8 @@ import type { RouteSegment } from '@/lib/router';
 export default function Page() {
   const [bundle, setBundle] = useState<DataBundle | null>(null);
   const [activeLines, setActiveLines] = useState<Set<string>>(new Set());
+  const [routes, setRoutes] = useState<RouteSegment[][]>([]);
+  const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
   const [currentRoute, setCurrentRoute] = useState<RouteSegment[]>([]);
 
   useEffect(() => {
@@ -55,13 +57,33 @@ export default function Page() {
           setActiveLines(next);
         }}
       />
-      <RoutePanel bundle={bundle} onRoute={setCurrentRoute} />
+      <RoutePanel
+        bundle={bundle}
+        onRoutes={(rts) => {
+          setRoutes(rts);
+          if (rts[0]) {
+            setSelectedIdx(0);
+            setCurrentRoute(rts[0]);
+          } else {
+            setSelectedIdx(null);
+            setCurrentRoute([]);
+          }
+        }}
+      />
       <MetroCanvas
         bundle={bundle}
         activeLines={activeLines}
         currentRoute={currentRoute}
       />
-      <RouteSummary bundle={bundle} route={currentRoute} />
+      <RouteResultList
+        bundle={bundle}
+        routes={routes}
+        selected={selectedIdx}
+        onSelect={(idx) => {
+          setSelectedIdx(idx);
+          setCurrentRoute(routes[idx]);
+        }}
+      />
     </>
   );
 }
