@@ -11,7 +11,7 @@ import type { RouteSegment } from '@/lib/router';
 export default function Page() {
   const [bundle, setBundle] = useState<DataBundle | null>(null);
   const [activeLines, setActiveLines] = useState<Set<string>>(new Set());
-  const [currentRoute, setCurrentRoute] = useState<RouteSegment[]>([]);
+  const [currentRoutes, setCurrentRoutes] = useState<RouteSegment[][]>([]);
 
   useEffect(() => {
     loadData()
@@ -55,9 +55,13 @@ export default function Page() {
           setActiveLines(next);
         }}
       />
-      <RouteSelector bundle={bundle} onRoute={setCurrentRoute} />
-      <MetroCanvas bundle={bundle} activeLines={activeLines} currentRoute={currentRoute} />
-      <RouteSummary bundle={bundle} route={currentRoute} />
+      <RouteSelector bundle={bundle} onRoute={setCurrentRoutes} />
+      <MetroCanvas
+        bundle={bundle}
+        activeLines={activeLines}
+        currentRoute={currentRoutes[0] ?? []}
+      />
+      <RouteSummary bundle={bundle} route={currentRoutes[0] ?? []} />
     </>
   );
 }

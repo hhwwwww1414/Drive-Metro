@@ -1,12 +1,12 @@
 'use client';
 import { useState } from 'react';
 import { DataBundle } from '@/lib/types';
-import { findRoute } from '@/lib/graph';
+import { findRoutes } from '@/lib/graph';
 import type { RouteSegment } from '@/lib/router';
 
 type Props = {
   bundle: DataBundle;
-  onRoute: (route: RouteSegment[]) => void;
+  onRoute: (routes: RouteSegment[][]) => void;
 };
 
 export default function RouteSelector({ bundle, onRoute }: Props) {
@@ -16,8 +16,8 @@ export default function RouteSelector({ bundle, onRoute }: Props) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!from || !to) return;
-    const route = findRoute(bundle, from, to);
-    onRoute(route);
+    const routes = findRoutes(bundle, from, to);
+    onRoute(routes);
   };
 
   return (
