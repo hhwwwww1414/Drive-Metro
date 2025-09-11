@@ -1,56 +1,39 @@
 ﻿line_id,corridor_id,name,short_name,color,style,bidirectional,visible_default,draw_order
-EW-1,EW,Восток–Запад Тюмень,EW-1,#0078BF,solid,1,1,100
-EW-2,EW,Восток–Запад Уфа,EW-2,#0078BF,solid,1,1,101
-
-MSK-RSTDN,KRASNODAR,Москва Ростов,MSK-RST,#F58631,solid,1,1,200
-RST-KRD,KRASNODAR,Ростов Краснодар,RST-KRD,#F58631,solid,1,1,201
-
-MSK-RST,VLADIKAV,Москва Владикавказ,MSK-VLD,#894E35,solid,1,1,210
-
-MSK-VLG,M6,Москва Элиста,MSK-ELI,#FFCB31,solid,1,1,220
-ELI-GRZ-MAH,M6,Элиста Грозный Махачкала,ELI-GRZ,#FFCB31,solid,1,1,221
-ELI-AST-MAH,M6,Элиста Астрахань Махачкала,ELI-AST,#FFCB31,solid,1,1,222
-
-VLG-ELI-VLD,KAVKAZ,Волгоград Элиста Владикавказ,VLG-VLD,#8E479C,solid,1,1,230
-VLG-SRT-TLT,KAVKAZ,Волгоград Саратов Тольятти,VLG-TLT,#8E479C,solid,1,1,231
-VLG-ELI-VLD-1,KAVKAZ,Волгоград Элиста Махачкала,VLG-VLD-1,#8E479C,solid,1,1,232
-VLG-ELI-VLD-2,KAVKAZ,Волгоград Элиста Махачкала 1,VLG-VLD-2,#8E479C,solid,1,1,233
-
-MSK-MUR-SPB,MUR,Москва Мурманск Петербург,MSK-MUR-SPB,#B0BFE7,solid,1,1,400
-MSK-MUR-YAR,MUR,Москва Мурманск Ярославль,MSK-MUR-YAR,#B0BFE7,solid,1,1,401
-
-SYK-YAR-MSK,VOLGA,Сыктывкар Ярославль Москва,SYK-MSK,#19C1F3,solid,1,1,500
-YOL-CHB-MSK,VOLGA,Йошкар-Ола Москва,YOL-MSK,#19C1F3,solid,1,1,501
-MSK-VOLGA-TLT,VOLGA,Москва Тольятти Волга,MSK-TLTVOL,#19C1F3,solid,1,1,502
-MSK-TLT,VOLGA,Москва Тольятти,MSK-TLT,#19C1F3,solid,1,1,503
-
-SRG-EKB,SEVER,Сургут Екатеринбург,SRG-EKB,#44B85C,solid,1,1,600
-EKB-MSK-KIR,SEVER,Екатеринбург Москва Киров,EKB-MSK-KIR,#44B85C,solid,1,1,601
-EKB-MSK-IZH,SEVER,Екатеринбург Москва Ижевск,EKB-MSK-IZH,#44B85C,solid,1,1,602
-NRG-SRG,SEVER,Новый Уренгой Сургут,NRG-SRG,#44B85C,solid,1,1,603
-KHM-SRG,SEVER,Ханты-Мансийск Сургут,KHM-SRG,#44B85C,solid,1,1,604
-NVV-SRG,SEVER,Нижневартовск Сургут,NVV-SRG,#44B85C,solid,1,1,605
-EKB-MSK-NCH,SEVER,Екатеринбург Москва Челны,EKB-MSK-NCH,#44B85C,solid,1,1,612
-
-AB-1,SIBERIA,Кызыл Абакан Барнаул,AB-1,#79CDCD,solid,1,1,700
-NVKZ,SIBERIA,Новокузнецк Кемерово,NVKZ,#79CDCD,solid,1,1,701
-BIYSK,SIBERIA,Бийск Барнаул,BIYSK,#79CDCD,solid,1,1,702
-CHT-MAG,SIBERIA,Сковородино Магадан,CHT-MAG,#79CDCD,solid,1,1,704
-TOM-NOVK,SIBERIA,Томск Новокузнецк,TOM-NOVK,#79CDCD,solid,1,1,705
-NSK-GALT,SIBERIA,Новосибирск Горно-Алтайск,NSK-GALT,#79CDCD,solid,1,1,706
-KRS-KYZ,SIBERIA,Красноярск Кызыл,KRS-KYZ,#79CDCD,solid,1,1,707
-
-KAL,KALIN,Москва Петербург Калининград,KAL,#B3D445,solid,1,1,800
-ORSK,ORSK,Тольятти Орск,ORSK,#27303F,solid,1,1,810
-
-MSK-CRM-MEL,MSK-CRM,Москва Крым Мариуполь,MSK-CRM-MEL,#D92B2C,solid,1,1,310
-MSK-CRM-KRC,MSK-CRM,Москва Крым Краснодар,MSK-CRM-KRC,#D92B2C,solid,1,1,311
-VVO-KRSNDR-1,VVO-KRSNDR,Владивосток Краснодар 1,VVO-KRSNDR-1,#DE64A1,solid,1,1,720
-VVO-KRSNDR-2,VVO-KRSNDR,Владивосток Краснодар 2,VVO-KRSNDR-2,#DE64A1,solid,1,1,721
-VVO-KRSNDR-3,VVO-KRSNDR,Владивосток Краснодар 3,VVO-KRSNDR-3,#DE64A1,solid,1,1,721
-VVO-KRSNDR-4,VVO-KRSNDR,Владивосток Краснодар 4,VVO-KRSNDR-4,#DE64A1,solid,1,1,721
-MNSK-MSK,MNSK-MSK,Минск Москва,MNSK-MSK,#808080,solid,1,1,900
-MSK-BLG,MSK-BLG,Москва Белгород,MSK-BLG,#FF0000,solid,1,1,901
-KRD-NOV-GEL-TUA-SOC,BIG-CITY,Краснодар Новороссийск Геленджик Туапсе Сочи,KRD-SOC,#555555,solid,1,1,902
-UFA-MAG,BIG-CITY,Уфа Магнитогорск,UFA-MAG,#555555,solid,1,1,903
-EKB-NTG,BIG-CITY,Екатеринбург Нижний Тагил,EKB-NTG,#555555,solid,1,1,904
+EW-1,VLADIVOSTOK,Восток–Запад Тюмень,EW-1,#0078BF,solid,1,1,100
+EW-2,VLADIVOSTOK,Восток–Запад Уфа,EW-2,#0078BF,solid,1,1,101
+KHM-SRG,SEVER,Ханты-Мансийск Сургут,KHM-SRG,#44B85C,solid,1,1,102
+NRG-SRG,SEVER,Новый Уренгой Сургут,NRG-SRG,#44B85C,solid,1,1,103
+NVV-SRG,SEVER,Нижневартовск Сургут,NVV-SRG,#44B85C,solid,1,1,104
+SRG-MSK1,SEVER,Пермь-Ижевск,SRG-MSK1,#44B85C,solid,1,1,105
+SRG-MSK2,SEVER,Пермь-Киров,SRG-MSK2,#44B85C,solid,1,1,106
+SRG-MSK3,SEVER,Екатеринбург-Челны,SRG-MSK3,#44B85C,solid,1,1,107
+MSK-MUR-SPB,MURMANSK,Мурманск через Петербург,MSK-MUR-SPB,#B0BFE7,solid,1,1,108
+MSK-MUR-YAR,MURMANSK,Мурманск через Ярославль,MSK-MUR-YAR,#B0BFE7,solid,1,1,109
+MSK-MAH-ELI-AST,M6,Астахань-Махачкала,MSK-MAH-ELI-AST,#FFCB31,solid,1,1,110
+MSK-MAH-ELI-GRZ,M6,Грозный-Махачкала,MSK-MAH-ELI-GRZ,#FFCB31,solid,1,1,111
+TLT-MAH-NVN,KAVKAZ,Элиста-Невинномысск,TLT-MAH-NVN,#8E479C,solid,1,1,112
+TLT-MAH-BDN,KAVKAZ,Элиста-Буденовск,TLT-MAH-BDN,#8E479C,solid,1,1,113
+TLT-MAH-AST,KAVKAZ,Элиста-Астрахань,TLT-MAH-AST,#8E479C,solid,1,1,114
+MSK-KRSNDR,KRASNODAR,Москва-Краснодар,MSK-KRSNDR,#F58631,solid,1,1,115
+MSK-MAH-VLD,VLADIKAVKAZ,Москва-Владикавказ,MSK-MAH-VLD,#894E35,solid,1,1,116
+MSK-ORSK-RZN-PNZ,ORSK,Москва-Орск,MSK-ORSK-RZN-PNZ,#27303F,solid,1,1,117
+MSK-ORSK-VLD-NN,ORSK,Москва-Орск,MSK-ORSK-VLD-NN,#27303F,solid,1,1,118
+MSK-SEV-KRCH,KRYM,Москва-Краснодар,MSK-SEV-KRCH,#0078BF,solid,1,1,119
+MSK-SEV-MEL,KRYM,Москва-Мариуполь,MSK-SEV-MEL,#0078BF,solid,1,1,120
+VVO-KRSNDR-1,VLADIVOSTOK-KRASNODAR,Курган-Воронеж,VVO-KRSNDR-1,#DE64A1,solid,1,1,121
+VVO-KRSNDR-2,VLADIVOSTOK-KRASNODAR,Курган-Волгоград,VVO-KRSNDR-2,#DE64A1,solid,1,1,122
+VVO-KRSNDR-3,VLADIVOSTOK-KRASNODAR,Тюмень-Воронеж,VVO-KRSNDR-3,#DE64A1,solid,1,1,123
+VVO-KRSNDR-4,VLADIVOSTOK-KRASNODAR,Тюмень-Волгоград,VVO-KRSNDR-4,#DE64A1,solid,1,1,124
+KAL,KALININGRAD,Москва-Калининград,KAL,#B3D445,solid,1,1,125
+MNSK-MSK,MINSK,Москва-Минск,MNSK-MSK,#808080,solid,1,1,126
+MSK-BLG,BELGOROD,Москва-Белгород,MSK-BLG,#FF0000,solid,1,1,127
+EKB-NTG,OT-KRUPNYH-GORODOV,Нижний Тагил,EKB-NTG,#555555,solid,1,1,128
+KRD-SOC-NOV-GEL-TUA,OT-KRUPNYH-GORODOV,Сочи,KRD-SOC-NOV-GEL-TUA,#555555,solid,1,1,129
+UFA-MAG,OT-KRUPNYH-GORODOV,Магнитогорск,UFA-MAG,#555555,solid,1,1,130
+NSK-GALT,OT-KRUPNYH-GORODOV,Новосибирск-Горно-Алтайск,NSK-GALT,#79CDCD,solid,1,1,131
+KEM-NVKZ,OT-KRUPNYH-GORODOV,Кемерово-Новокузнецк,KEM-NVKZ,#555555,solid,1,1,132
+KEM-TOM,OT-KRUPNYH-GORODOV,Кемерово-Томск,KEM-TOM,#555555,solid,1,1,133
+KRS-KYZ,OT-KRUPNYH-GORODOV,Красноярск-Кызыл,KRS-KYZ,#79CDCD,solid,1,1,134
+MGDN,OT-KRUPNYH-GORODOV,Магадан,MGDN,#555555,solid,1,1,135
+SYK-KIR,OT-KRUPNYH-GORODOV,Сыктывкар-Киров,SYK-KIR,#555555,solid,1,1,136
+YOL-KAZ,OT-KRUPNYH-GORODOV,Йошкар-Ола-Казань,YOL-KAZ,#555555,solid,1,1,137
