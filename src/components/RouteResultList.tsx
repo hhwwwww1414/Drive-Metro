@@ -84,12 +84,32 @@ export default function RouteResultList({ routes, bundle, selected, onSelect }: 
               gap: 6,
             }}
           >
-            <div style={{ fontWeight: 600, fontSize: 14 }}>
+            <div
+              style={{
+                fontWeight: 600,
+                fontSize: 14,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 4,
+              }}
+            >
+              <span style={{ color: '#6b7280' }}>{idx + 1}.</span>
               {start} → {end}
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexWrap: 'wrap', fontSize: 12 }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 4,
+                flexWrap: 'wrap',
+                fontSize: 12,
+              }}
+            >
               {lines.map((l, j) => (
-                <span key={l.line_id} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                <span
+                  key={l.line_id}
+                  style={{ display: 'flex', alignItems: 'center', gap: 4 }}
+                >
                   <span
                     style={{
                       background: l.color,
@@ -101,7 +121,9 @@ export default function RouteResultList({ routes, bundle, selected, onSelect }: 
                   >
                     {l.name}
                   </span>
-                  {j < lines.length - 1 && <span style={{ color: '#6b7280' }}>→</span>}
+                  {j < lines.length - 1 && (
+                    <span style={{ color: '#6b7280' }}>→</span>
+                  )}
                 </span>
               ))}
               <span style={{ marginLeft: 'auto', color: '#6b7280' }}>{dist} км</span>
