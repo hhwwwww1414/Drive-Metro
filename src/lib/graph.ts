@@ -84,21 +84,29 @@ export function buildAllEdgesSafe(bundle?: DataBundle | null) {
   return buildAllEdges(bundle);
 }
 
-// Поиск кратчайшего маршрута с минимальным числом пересадок
-export function findRoute(
-  bundle: DataBundle,
-  startId: string,
-  endId: string
-): RouteSegment[] {
-  if (startId === endId) return [];
+type Cost = { transfers: number; length: number };
+type WeightedEdge = { to: string; cost: Cost };
+type WeightedGraph = Map<string, WeightedEdge[]>;
 
+function addCost(a: Cost, b: Cost): Cost {
+  return { transfers: a.transfers + b.transfers, length: a.length + b.length };
+}
+
+function compareCost(a: Cost, b: Cost): number {
+  return a.transfers - b.transfers || a.length - b.length;
+}
+
+function buildWeightedGraph(bundle: DataBundle): {
+  graph: WeightedGraph;
+  cityLines: Map<string, Set<string>>;
+} {
   const edges = buildAllEdges(bundle);
-  const graph = new Map<string, Array<{ to: string; w: 0 | 1 }>>();
+  const graph: WeightedGraph = new Map();
   const cityLines = new Map<string, Set<string>>();
 
-  function addEdge(from: string, to: string, w: 0 | 1) {
+  function addEdge(from: string, to: string, cost: Cost) {
     if (!graph.has(from)) graph.set(from, []);
-    graph.get(from)!.push({ to, w });
+    graph.get(from)!.push({ to, cost });
   }
 
   function addCityLine(city: string, line: string) {
@@ -110,8 +118,9 @@ export function findRoute(
   for (const e of edges) {
     const a = nodeKey(e.a, e.line.line_id);
     const b = nodeKey(e.b, e.line.line_id);
-    addEdge(a, b, 0);
-    addEdge(b, a, 0);
+    const cost: Cost = { transfers: 0, length: 1 };
+    addEdge(a, b, cost);
+    addEdge(b, a, cost);
     addCityLine(e.a, e.line.line_id);
     addCityLine(e.b, e.line.line_id);
   }
@@ -123,12 +132,127 @@ export function findRoute(
       for (let j = i + 1; j < ls.length; j++) {
         const n1 = nodeKey(city, ls[i]);
         const n2 = nodeKey(city, ls[j]);
-        addEdge(n1, n2, 1);
-        addEdge(n2, n1, 1);
+        const cost: Cost = { transfers: 1, length: 0 };
+        addEdge(n1, n2, cost);
+        addEdge(n2, n1, cost);
       }
     }
   }
 
+  return { graph, cityLines };
+}
+
+type Path = { nodes: string[]; cost: Cost };
+
+function shortestPath(
+  graph: WeightedGraph,
+  startNodes: string[],
+  endNodes: Set<string>
+): Path | null {
+  const queue: Array<{ node: string; cost: Cost; path: string[] }> = [];
+  for (const n of startNodes) {
+    queue.push({ node: n, cost: { transfers: 0, length: 0 }, path: [n] });
+  }
+  const seen = new Map<string, Cost>();
+
+  while (queue.length) {
+    queue.sort((a, b) => compareCost(a.cost, b.cost));
+    const cur = queue.shift()!;
+    if (endNodes.has(cur.node)) return { nodes: cur.path, cost: cur.cost };
+    const prevBest = seen.get(cur.node);
+    if (prevBest && compareCost(cur.cost, prevBest) > 0) continue;
+    seen.set(cur.node, cur.cost);
+    const neighbors = graph.get(cur.node) || [];
+    for (const { to, cost } of neighbors) {
+      const nextCost = addCost(cur.cost, cost);
+      const best = seen.get(to);
+      if (!best || compareCost(nextCost, best) < 0) {
+        queue.push({ node: to, cost: nextCost, path: [...cur.path, to] });
+      }
+    }
+  }
+  return null;
+}
+
+function pathCost(path: string[], graph: WeightedGraph): Cost {
+  let cost: Cost = { transfers: 0, length: 0 };
+  for (let i = 0; i < path.length - 1; i++) {
+    const edges = graph.get(path[i]) || [];
+    const edge = edges.find((e) => e.to === path[i + 1]);
+    if (edge) cost = addCost(cost, edge.cost);
+  }
+  return cost;
+}
+
+function arraysEqual<T>(a: T[], b: T[]): boolean {
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return false;
+  return true;
+}
+
+function kShortestPaths(
+  graphOrig: WeightedGraph,
+  startNodes: string[],
+  endNodes: Set<string>,
+  k: number
+): Path[] {
+  const first = shortestPath(graphOrig, startNodes, endNodes);
+  if (!first) return [];
+  const A: Path[] = [first];
+  const B: Path[] = [];
+
+  for (let k1 = 1; k1 < k; k1++) {
+    const prev = A[k1 - 1];
+    for (let i = 0; i < prev.nodes.length - 1; i++) {
+      const spurNode = prev.nodes[i];
+      const rootPath = prev.nodes.slice(0, i + 1);
+
+      const graph: WeightedGraph = new Map();
+      for (const [node, edges] of graphOrig) {
+        graph.set(node, edges.slice());
+      }
+
+      for (const p of A) {
+        if (p.nodes.length > i && arraysEqual(rootPath, p.nodes.slice(0, i + 1))) {
+          const from = p.nodes[i];
+          const to = p.nodes[i + 1];
+          const edges = graph.get(from);
+          if (edges) {
+            const idx = edges.findIndex((e) => e.to === to);
+            if (idx !== -1) edges.splice(idx, 1);
+          }
+        }
+      }
+
+      const spurPath = shortestPath(graph, [spurNode], endNodes);
+      if (spurPath) {
+        const totalNodes = rootPath.slice(0, -1).concat(spurPath.nodes);
+        const rootCost = pathCost(rootPath, graphOrig);
+        const totalCost = addCost(rootCost, spurPath.cost);
+        const candidate: Path = { nodes: totalNodes, cost: totalCost };
+        if (!B.some((p) => arraysEqual(p.nodes, totalNodes))) {
+          B.push(candidate);
+        }
+      }
+    }
+
+    if (!B.length) break;
+    B.sort((a, b) => compareCost(a.cost, b.cost));
+    A.push(B.shift()!);
+  }
+
+  return A;
+}
+
+export function findRoutes(
+  bundle: DataBundle,
+  startId: string,
+  endId: string,
+  k = 3
+): RouteSegment[][] {
+  if (startId === endId) return [];
+
+  const { graph, cityLines } = buildWeightedGraph(bundle);
   const startLines = cityLines.get(startId);
   const endLines = cityLines.get(endId);
   if (!startLines || !endLines) return [];
@@ -136,47 +260,17 @@ export function findRoute(
   const startNodes = Array.from(startLines, (l) => nodeKey(startId, l));
   const endNodes = new Set(Array.from(endLines, (l) => nodeKey(endId, l)));
 
-  const dist = new Map<string, number>();
-  const prev = new Map<string, string>();
-  const deque: string[] = [];
-  for (const n of startNodes) {
-    dist.set(n, 0);
-    deque.push(n);
-  }
+  const paths = kShortestPaths(graph, startNodes, endNodes, k);
+  return paths.map((p) => buildSegmentsFromPath(p.nodes, bundle));
+}
 
-  let target: string | null = null;
-  while (deque.length && target === null) {
-    const cur = deque.shift()!;
-    if (endNodes.has(cur)) {
-      target = cur;
-      break;
-    }
-    const neighbors = graph.get(cur) || [];
-    for (const { to, w } of neighbors) {
-      const nd = dist.get(cur)! + w;
-      if (nd < (dist.get(to) ?? Number.POSITIVE_INFINITY)) {
-        dist.set(to, nd);
-        prev.set(to, cur);
-        if (w === 0) {
-          deque.unshift(to);
-        } else {
-          deque.push(to);
-        }
-      }
-    }
-  }
-
-  if (!target) return [];
-
-  const path: string[] = [];
-  let cur: string | undefined = target;
-  while (cur) {
-    path.push(cur);
-    cur = prev.get(cur);
-  }
-  path.reverse();
-
-  return buildSegmentsFromPath(path, bundle);
+// Сохранённая версия для совместимости: возвращает только первый маршрут
+export function findRoute(
+  bundle: DataBundle,
+  startId: string,
+  endId: string
+): RouteSegment[] {
+  return findRoutes(bundle, startId, endId, 1)[0] ?? [];
 }
 
 // очень простой раскладчик подписей (без коллизий, но с оффсетами)
