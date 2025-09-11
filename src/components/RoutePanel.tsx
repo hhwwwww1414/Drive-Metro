@@ -20,26 +20,12 @@ export default function RoutePanel({ bundle, onRoutes }: Props) {
     onRoutes(found);
   };
 
-  return (
-    <div
-      style={{
-        position: 'fixed',
-        left: 12,
-        top: 12,
-        width: '100%',
-        maxWidth: 360,
-        padding: 12,
-        background: '#1f2937',
-        color: '#fff',
-        borderRadius: 12,
-        zIndex: 4,
-        fontFamily: 'Inter, system-ui, sans-serif',
-      }}
-    >
-      <form
-        onSubmit={handleSubmit}
-        style={{ display: 'flex', flexDirection: 'column', gap: 8 }}
-      >
+    return (
+      <div className="route-panel">
+        <form
+          onSubmit={handleSubmit}
+          style={{ display: 'flex', flexDirection: 'column', gap: 8 }}
+        >
         <select
           value={from}
           onChange={(e) => setFrom(e.target.value)}
