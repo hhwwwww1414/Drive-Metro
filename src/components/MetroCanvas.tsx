@@ -111,7 +111,11 @@ export default function MetroCanvas({ bundle, activeLines, currentRoute: route =
     const keys = new Set<string>();
     for (const seg of currentRoute) {
       if (!seg.transfer) {
-        keys.add(`${edgeKey(seg.from, seg.to)}::${seg.line.line_id}`);
+        const key = edgeKey(seg.from, seg.to);
+        // Keep both corridor and line identifiers so highlighting works
+        // regardless of which variant was used for the route or rendering
+        keys.add(`${key}::${seg.line.corridor_id}`);
+        keys.add(`${key}::${seg.line.line_id}`);
       }
     }
     return keys;
@@ -340,7 +344,7 @@ export default function MetroCanvas({ bundle, activeLines, currentRoute: route =
             const b = tryGetXY(edge.b, cityIndex);
             if (!a || !b) return null;
 
-            const segKey = `${edgeKey(edge.a, edge.b)}::${edge.line.line_id}`;
+            const segKey = `${edgeKey(edge.a, edge.b)}::${edge.line.corridor_id}`;
             const inRoute = routeSegments.has(segKey);
             const isHighlighted = inRoute || highlightedLine === edge.line.line_id;
             const isDimmed = highlightedLine
