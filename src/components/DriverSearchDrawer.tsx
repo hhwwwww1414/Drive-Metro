@@ -12,8 +12,8 @@ import {
   DrawerDescription,
   DrawerFooter,
 } from '@/components/ui/drawer';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import DriverCard from '@/components/DriverCard';
+import { ArrowLeftRight } from 'lucide-react';
 
 type Props = {
   bundle: DataBundle;
@@ -156,15 +156,14 @@ export default function DriverSearchDrawer({ bundle }: Props) {
 
   return (
     <>
-      {!open && (
-        <button
-          className="fixed bottom-4 right-4 rounded-full bg-yellow-300 px-4 py-2 text-sm font-medium text-gray-800 shadow"
-          onClick={() => setOpen(true)}
-        >
-          Поиск перевозчика
-        </button>
-      )}
-      <Drawer open={open} onOpenChange={setOpen}>
+      <button
+        className="fixed top-4 right-4 z-50 rounded-full bg-white p-2 shadow"
+        onClick={() => setOpen((o) => !o)}
+        aria-label="Toggle driver search"
+      >
+        <ArrowLeftRight className="h-5 w-5" />
+      </button>
+      <Drawer open={open}>
         <DrawerContent>
           <DrawerHeader>
             <DrawerTitle>Поиск перевозчика</DrawerTitle>
@@ -192,28 +191,26 @@ export default function DriverSearchDrawer({ bundle }: Props) {
           </div>
           {results && (
             <DrawerFooter>
-              <Tabs defaultValue="exact">
-                <TabsList className="grid grid-cols-3">
-                  <TabsTrigger value="exact">Точный</TabsTrigger>
-                  <TabsTrigger value="geozone">Геозона</TabsTrigger>
-                  <TabsTrigger value="composite">Составной</TabsTrigger>
-                </TabsList>
-                <TabsContent value="exact">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                <div>
+                  <div className="mb-2 font-medium">Точный</div>
                   {results.exact.length
                     ? renderDriverList(results.exact)
                     : 'Ничего не найдено'}
-                </TabsContent>
-                <TabsContent value="geozone">
+                </div>
+                <div>
+                  <div className="mb-2 font-medium">Геозона</div>
                   {results.geozone.length
                     ? renderDriverList(results.geozone)
                     : 'Ничего не найдено'}
-                </TabsContent>
-                <TabsContent value="composite">
+                </div>
+                <div>
+                  <div className="mb-2 font-medium">Составной</div>
                   {results.composite.length
                     ? renderComposite(results.composite)
                     : 'Ничего не найдено'}
-                </TabsContent>
-              </Tabs>
+                </div>
+              </div>
             </DrawerFooter>
           )}
           <div className="mt-4 border-t pt-4 text-sm">
