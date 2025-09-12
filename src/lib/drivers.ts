@@ -39,7 +39,7 @@ function parseCSV(text: string): Record<string, string>[] {
   return rows;
 }
 
-function normalize(s: string): string {
+export function normalize(s: string): string {
   return s
     .replace(/[—–]/g, '-')
     .replace(/\s+/g, ' ')
