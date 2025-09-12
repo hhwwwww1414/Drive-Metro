@@ -12,11 +12,11 @@ export function Drawer({ open, onOpenChange, children }: DrawerProps) {
   if (!open) return null;
   return createPortal(
     <div
-      className="fixed inset-0 z-50 flex items-end justify-center bg-black/40"
+      className="fixed inset-0 z-50 flex justify-end bg-black/40"
       onClick={() => onOpenChange(false)}
     >
       <div
-        className="w-full max-w-md rounded-t-xl bg-white p-4"
+        className="h-full w-full max-w-md overflow-y-auto rounded-l-xl bg-white p-4"
         onClick={(e) => e.stopPropagation()}
       >
         {children}
