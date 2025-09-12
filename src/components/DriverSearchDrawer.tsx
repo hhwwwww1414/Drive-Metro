@@ -1,5 +1,6 @@
 'use client';
 import { useCallback, useEffect, useState, useMemo, useRef } from 'react';
+import { useVirtualizer } from '@tanstack/react-virtual';
 import { DataBundle } from '@/lib/types';
 import { DriverSearchResult, DriverInfo } from '@/lib/driver-search';
 import { normalize } from '@/lib/drivers';
@@ -125,34 +126,94 @@ export default function DriverSearchDrawer({ bundle }: Props) {
     return { exact, geozone, composite };
   }, [baseResults, corridors, onlyPhone, maxOneTransfer, shortFirst]);
 
-  const renderDriverList = (list: DriverInfo[]) => (
-    <ul className="space-y-1 text-sm">
-      {list.map((d) => (
-        <li key={d.id}>
-          <DriverCard driver={d} />
-        </li>
-      ))}
-    </ul>
-  );
+  function DriverList({ list }: { list: DriverInfo[] }) {
+    const parentRef = useRef<HTMLDivElement>(null);
+    const rowVirtualizer = useVirtualizer({
+      count: list.length,
+      getScrollElement: () => parentRef.current,
+      estimateSize: () => 80,
+      overscan: 5,
+      measureElement: (el) => el.getBoundingClientRect().height,
+    });
 
-  const renderComposite = (list: { path: string[]; drivers: DriverInfo[] }[]) => (
-    <ul className="space-y-2 text-sm">
-      {list.map((r, idx) => (
-        <li key={idx} className="space-y-1 rounded border p-2">
-          {r.drivers.map((d, i) => (
-            <div key={d.id} className="space-y-1">
-              <DriverCard driver={d} />
-              {i < r.path.length - 2 && (
-                <div className="px-2 text-xs text-gray-500">
-                  Пересадка: {cityIndex[r.path[i + 1]] || r.path[i + 1]}
+    return (
+      <div ref={parentRef} className="max-h-80 overflow-y-auto text-sm">
+        <div
+          style={{
+            height: `${rowVirtualizer.getTotalSize()}px`,
+            width: '100%',
+            position: 'relative',
+          }}
+        >
+          {rowVirtualizer.getVirtualItems().map((item) => {
+            const d = list[item.index];
+            return (
+              <div
+                key={d.id}
+                ref={rowVirtualizer.measureElement}
+                className="absolute left-0 top-0 w-full pb-1"
+                style={{ transform: `translateY(${item.start}px)` }}
+              >
+                <DriverCard driver={d} />
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
+
+  function CompositeList({
+    list,
+  }: {
+    list: { path: string[]; drivers: DriverInfo[] }[];
+  }) {
+    const parentRef = useRef<HTMLDivElement>(null);
+    const rowVirtualizer = useVirtualizer({
+      count: list.length,
+      getScrollElement: () => parentRef.current,
+      estimateSize: () => 160,
+      overscan: 5,
+      measureElement: (el) => el.getBoundingClientRect().height,
+    });
+
+    return (
+      <div ref={parentRef} className="max-h-80 overflow-y-auto text-sm">
+        <div
+          style={{
+            height: `${rowVirtualizer.getTotalSize()}px`,
+            width: '100%',
+            position: 'relative',
+          }}
+        >
+          {rowVirtualizer.getVirtualItems().map((item) => {
+            const r = list[item.index];
+            return (
+              <div
+                key={item.index}
+                ref={rowVirtualizer.measureElement}
+                className="absolute left-0 top-0 w-full pb-2"
+                style={{ transform: `translateY(${item.start}px)` }}
+              >
+                <div className="space-y-1 rounded border p-2">
+                  {r.drivers.map((d, i) => (
+                    <div key={d.id} className="space-y-1">
+                      <DriverCard driver={d} />
+                      {i < r.path.length - 2 && (
+                        <div className="px-2 text-xs text-gray-500">
+                          Пересадка: {cityIndex[r.path[i + 1]] || r.path[i + 1]}
+                        </div>
+                      )}
+                    </div>
+                  ))}
                 </div>
-              )}
-            </div>
-          ))}
-        </li>
-      ))}
-    </ul>
-  );
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -194,21 +255,27 @@ export default function DriverSearchDrawer({ bundle }: Props) {
               <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                 <div>
                   <div className="mb-2 font-medium">Точный</div>
-                  {results.exact.length
-                    ? renderDriverList(results.exact)
-                    : 'Ничего не найдено'}
+                  {results.exact.length ? (
+                    <DriverList list={results.exact} />
+                  ) : (
+                    'Ничего не найдено'
+                  )}
                 </div>
                 <div>
                   <div className="mb-2 font-medium">Геозона</div>
-                  {results.geozone.length
-                    ? renderDriverList(results.geozone)
-                    : 'Ничего не найдено'}
+                  {results.geozone.length ? (
+                    <DriverList list={results.geozone} />
+                  ) : (
+                    'Ничего не найдено'
+                  )}
                 </div>
                 <div>
                   <div className="mb-2 font-medium">Составной</div>
-                  {results.composite.length
-                    ? renderComposite(results.composite)
-                    : 'Ничего не найдено'}
+                  {results.composite.length ? (
+                    <CompositeList list={results.composite} />
+                  ) : (
+                    'Ничего не найдено'
+                  )}
                 </div>
               </div>
             </DrawerFooter>
