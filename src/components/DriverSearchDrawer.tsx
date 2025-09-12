@@ -120,7 +120,7 @@ export default function DriverSearchDrawer({ bundle }: Props) {
     <>
       {!open && (
         <button
-          className="fixed bottom-4 right-4 rounded-full bg-yellow-300 px-4 py-2 text-sm font-medium text-gray-800 shadow"
+          className="fixed bottom-4 right-4 z-50 rounded-full bg-yellow-300 px-4 py-2 text-sm font-medium text-gray-800 shadow"
           onClick={() => setOpen(true)}
         >
           Поиск перевозчика
