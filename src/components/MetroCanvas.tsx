@@ -12,18 +12,12 @@ type Props = {
   bundle: DataBundle;
   activeLines: Set<string>;
   currentRoute?: RouteSegment[];
-  onToggleTheme: () => void;
-  onHideUI: () => void;
-  uiHidden?: boolean;
 };
 
 export default function MetroCanvas({
   bundle,
   activeLines,
   currentRoute: route = [],
-  onToggleTheme,
-  onHideUI,
-  uiHidden = false,
 }: Props) {
   // Анализируем маршруты для выделения общих участков
   const routeAnalysis = useMemo(() => {
@@ -357,30 +351,12 @@ export default function MetroCanvas({
     return placeLabels(bundle.cities, scale);
   }, [bundle.cities, scale]);
 
-  // реакция на «все/нет» из Legend
-  useEffect(() => {
-    const onMany = (e: Event) => {
-        const detail = (e as CustomEvent).detail as { ids: string[]; on: boolean };
-        const set = new Set(activeLines);
-        for (const id of detail.ids) {
-          if (detail.on) {
-            set.add(id);
-          } else {
-            set.delete(id);
-          }
-        }
-        // хак: пробросим через window → страница обработает и обновит activeLines
-        const ev = new CustomEvent('page:update-lines', { detail: Array.from(set) });
-        window.dispatchEvent(ev);
-      };
-      window.addEventListener('legend:toggle-many', onMany as EventListener);
-      return () => window.removeEventListener('legend:toggle-many', onMany as EventListener);
-    }, [activeLines]);
+  // Раньше здесь слушали события от Legend для массового переключения линий.
+  // После упрощения структуры страницы эта логика больше не нужна.
 
   return (
     <div ref={frameRef} className="map-frame">
-      {!uiHidden && (
-        <div className="map-toolbar">
+      <div className="map-toolbar">
         <button
           className="map-btn"
           onClick={() => setScale((s) => Math.min(METRO_CONFIG.ZOOM_MAX, s * METRO_CONFIG.ZOOM_STEP))}
@@ -431,10 +407,7 @@ export default function MetroCanvas({
         >
           {routeAnalysis.mainBranches.length} основных веток
         </div>
-        <button className="map-btn" onClick={onToggleTheme}>Тема</button>
-        <button className="map-btn" onClick={onHideUI}>Скрыть интерфейс</button>
       </div>
-      )}
 
       <svg
         ref={svgRef}
