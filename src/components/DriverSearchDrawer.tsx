@@ -1,7 +1,7 @@
 'use client';
-import { useCallback, useEffect, useState, useMemo } from 'react';
+import { useCallback, useEffect, useState, useMemo, useRef } from 'react';
 import { DataBundle } from '@/lib/types';
-import searchDrivers, { DriverSearchResult, DriverInfo } from '@/lib/driver-search';
+import { DriverSearchResult, DriverInfo } from '@/lib/driver-search';
 import { normalize } from '@/lib/drivers';
 import { Combobox } from '@/components/ui/combobox';
 import {
@@ -46,24 +46,43 @@ export default function DriverSearchDrawer({ bundle }: Props) {
     return m;
   }, [bundle.cities]);
 
-  const handleSearch = useCallback(async () => {
-    if (!from || !to) return;
-    const res = await searchDrivers(from, to);
-    const mapRoute = (r: string[]) => r.map((c) => labelIndex[c] || c);
-    const mapDriver = (d: DriverInfo): DriverInfo => ({
-      ...d,
-      routes: d.routes.map(mapRoute),
-    });
-    const mapped: DriverSearchResult = {
-      exact: res.exact.map(mapDriver),
-      geozone: res.geozone.map(mapDriver),
-      composite: res.composite.map((r) => ({
-        path: r.path.map((c) => labelIndex[c] || c),
-        drivers: r.drivers.map(mapDriver),
-      })),
+  const workerRef = useRef<Worker>();
+
+  useEffect(() => {
+    const worker = new Worker(
+      new URL('../workers/driverSearchWorker.ts', import.meta.url)
+    );
+    workerRef.current = worker;
+    worker.onmessage = (
+      e: MessageEvent<{ type: string; result?: DriverSearchResult }>
+    ) => {
+      const { type } = e.data;
+      if (type === 'result') {
+        const res: DriverSearchResult = e.data.result;
+        const mapRoute = (r: string[]) => r.map((c) => labelIndex[c] || c);
+        const mapDriver = (d: DriverInfo): DriverInfo => ({
+          ...d,
+          routes: d.routes.map(mapRoute),
+        });
+        const mapped: DriverSearchResult = {
+          exact: res.exact.map(mapDriver),
+          geozone: res.geozone.map(mapDriver),
+          composite: res.composite.map((r) => ({
+            path: r.path.map((c) => labelIndex[c] || c),
+            drivers: r.drivers.map(mapDriver),
+          })),
+        };
+        setBaseResults(mapped);
+      }
     };
-    setBaseResults(mapped);
-  }, [from, to, labelIndex]);
+    worker.postMessage({ type: 'load' });
+    return () => worker.terminate();
+  }, [labelIndex]);
+
+  const handleSearch = useCallback(() => {
+    if (!from || !to) return;
+    workerRef.current?.postMessage({ type: 'search', from, to });
+  }, [from, to]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
