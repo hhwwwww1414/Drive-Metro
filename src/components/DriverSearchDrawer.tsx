@@ -2,6 +2,7 @@
 import { useCallback, useEffect, useState, useMemo } from 'react';
 import { DataBundle } from '@/lib/types';
 import searchDrivers, { DriverSearchResult, DriverInfo } from '@/lib/driver-search';
+import { normalize } from '@/lib/drivers';
 import { Combobox } from '@/components/ui/combobox';
 import {
   Drawer,
@@ -39,12 +40,30 @@ export default function DriverSearchDrawer({ bundle }: Props) {
     for (const c of bundle.cities) m[c.city_id] = c.label || c.city_id;
     return m;
   }, [bundle.cities]);
+  const labelIndex = useMemo(() => {
+    const m: Record<string, string> = {};
+    for (const c of bundle.cities) m[normalize(c.city_id)] = c.city_id;
+    return m;
+  }, [bundle.cities]);
 
   const handleSearch = useCallback(async () => {
     if (!from || !to) return;
     const res = await searchDrivers(from, to);
-    setBaseResults(res);
-  }, [from, to]);
+    const mapRoute = (r: string[]) => r.map((c) => labelIndex[c] || c);
+    const mapDriver = (d: DriverInfo): DriverInfo => ({
+      ...d,
+      routes: d.routes.map(mapRoute),
+    });
+    const mapped: DriverSearchResult = {
+      exact: res.exact.map(mapDriver),
+      geozone: res.geozone.map(mapDriver),
+      composite: res.composite.map((r) => ({
+        path: r.path.map((c) => labelIndex[c] || c),
+        drivers: r.drivers.map(mapDriver),
+      })),
+    };
+    setBaseResults(mapped);
+  }, [from, to, labelIndex]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {

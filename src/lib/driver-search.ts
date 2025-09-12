@@ -1,4 +1,4 @@
-import { loadDrivers } from './drivers';
+import { loadDrivers, normalize } from './drivers';
 
 export interface DriverInfo {
   id: string;
@@ -23,6 +23,8 @@ export interface DriverSearchResult {
 // Находит перевозчиков, чей маршрут начинается в origin и заканчивается в destination
 export async function findExactDrivers(origin: string, destination: string): Promise<DriverInfo[]> {
   const index = await loadDrivers();
+  origin = normalize(origin);
+  destination = normalize(destination);
   const key = `${origin}|${destination}`;
   const ids = index.pairToDriversExact[key] || [];
   const out: DriverInfo[] = [];
@@ -46,6 +48,8 @@ export async function findExactDrivers(origin: string, destination: string): Pro
 // Ищет перевозчиков, которые проходят через origin и destination в указанном порядке
 export async function findGeozoneDrivers(origin: string, destination: string): Promise<DriverInfo[]> {
   const index = await loadDrivers();
+  origin = normalize(origin);
+  destination = normalize(destination);
   const a = new Set(index.cityToDrivers[origin] || []);
   const candidates = (index.cityToDrivers[destination] || []).filter((id) => a.has(id));
   const out: DriverInfo[] = [];
@@ -80,6 +84,8 @@ export async function findCompositeRoutes(
   edgeToDrivers: Record<string, string[]>
 ): Promise<CompositeRoute[]> {
   const index = await loadDrivers();
+  origin = normalize(origin);
+  destination = normalize(destination);
   const adjacency: Record<string, { to: string; drivers: string[] }[]> = {};
   for (const [key, drivers] of Object.entries(edgeToDrivers)) {
     const [from, to] = key.split('|');
