@@ -19,27 +19,22 @@ export default function MetroCanvas({
   activeLines,
   currentRoute: route = [],
 }: Props) {
-  // Анализируем маршруты для выделения общих участков
-  const routeAnalysis = useMemo(() => {
+  // Анализируем маршруты для выделения общих участков (для отладки)
+  useEffect(() => {
     const analysis = analyzeRoutes(bundle.lines, bundle.linePaths, bundle.cities);
-    
-    // Выводим статистику в консоль для отладки
     console.log('📊 Анализ маршрутов:');
     console.log(`  Основные ветки: ${analysis.mainBranches.length}`);
     console.log(`  Ответвления: ${analysis.extensions.length}`);
     console.log(`  Всего сегментов: ${analysis.allSegments.length}`);
-    
-    // Показываем топ-5 самых загруженных сегментов
+
     const topSegments = analysis.allSegments
       .sort((a, b) => b.lines.length - a.lines.length)
       .slice(0, 5);
-    
+
     console.log('  Топ-5 загруженных сегментов:');
     topSegments.forEach((segment, i) => {
       console.log(`    ${i + 1}. ${segment.from} → ${segment.to} (${segment.lines.length} линий)`);
     });
-    
-    return analysis;
   }, [bundle.lines, bundle.linePaths, bundle.cities]);
 
   // List of corridors to render as unified (merge overlapping segments)
@@ -353,59 +348,6 @@ export default function MetroCanvas({
 
   return (
     <div ref={frameRef} className="map-frame">
-      <div className="map-toolbar">
-        <button
-          className="map-btn"
-          onClick={() => setScale((s) => Math.min(METRO_CONFIG.ZOOM_MAX, s * METRO_CONFIG.ZOOM_STEP))}
-        >
-          +
-        </button>
-        <button 
-          className="map-btn" 
-          onClick={() => setScale((s) => Math.max(METRO_CONFIG.ZOOM_MIN, s / METRO_CONFIG.ZOOM_STEP))}
-        >
-          −
-        </button>
-        <button className="map-btn" onClick={fitToData}>Подогнать к данным</button>
-        {highlightedLine && (
-          <button 
-            className="map-btn" 
-            onClick={() => setHighlightedLine(null)}
-            style={{ backgroundColor: '#f3f4f6', borderColor: '#d1d5db' }}
-          >
-            Сбросить подсветку
-          </button>
-        )}
-        <div
-          style={{
-            marginLeft: 12,
-            padding: '6px 12px',
-            background: '#f9fafb',
-            border: '1px solid #e5e7eb',
-            borderRadius: 6,
-            fontSize: 12,
-            color: '#6b7280',
-            fontFamily: 'Inter, system-ui, sans-serif'
-          }}
-        >
-          {Math.round(scale * 100)}%
-        </div>
-        <div
-          style={{
-            marginLeft: 8,
-            padding: '6px 12px',
-            background: '#f0f9ff',
-            border: '1px solid #bae6fd',
-            borderRadius: 6,
-            fontSize: 11,
-            color: '#0369a1',
-            fontFamily: 'Inter, system-ui, sans-serif'
-          }}
-        >
-          {routeAnalysis.mainBranches.length} основных веток
-        </div>
-      </div>
-
       <svg
         ref={svgRef}
         className="map-svg"
