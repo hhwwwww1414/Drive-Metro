@@ -22,7 +22,13 @@ export default function DriverSearchDrawer({ bundle }: Props) {
   const [open, setOpen] = useState(false);
   const [from, setFrom] = useState('');
   const [to, setTo] = useState('');
-  const [results, setResults] = useState<DriverSearchResult | null>(null);
+  const [baseResults, setBaseResults] = useState<DriverSearchResult | null>(null);
+  const [corridors, setCorridors] = useState<Set<string>>(
+    () => new Set(bundle.corridors.map((c) => c.corridor_id))
+  );
+  const [maxOneTransfer, setMaxOneTransfer] = useState(false);
+  const [onlyPhone, setOnlyPhone] = useState(false);
+  const [shortFirst, setShortFirst] = useState(false);
 
   const cityOptions = bundle.cities.map((c) => ({
     value: c.city_id,
@@ -37,7 +43,7 @@ export default function DriverSearchDrawer({ bundle }: Props) {
   const handleSearch = useCallback(async () => {
     if (!from || !to) return;
     const res = await searchDrivers(from, to);
-    setResults(res);
+    setBaseResults(res);
   }, [from, to]);
 
   useEffect(() => {
@@ -48,6 +54,38 @@ export default function DriverSearchDrawer({ bundle }: Props) {
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [open, handleSearch]);
+
+  const results = useMemo(() => {
+    if (!baseResults) return null;
+    let { exact, geozone, composite } = baseResults;
+
+    const byCorridor = (d: DriverInfo) =>
+      corridors.size === 0 || d.corridors.some((c) => corridors.has(c));
+
+    exact = exact.filter(byCorridor);
+    geozone = geozone.filter(byCorridor);
+    composite = composite.filter((r) => r.drivers.every(byCorridor));
+
+    if (onlyPhone) {
+      exact = exact.filter((d) => !!d.phone);
+      geozone = geozone.filter((d) => !!d.phone);
+      composite = composite.filter((r) => r.drivers.every((d) => !!d.phone));
+    }
+
+    if (maxOneTransfer) {
+      composite = composite.filter((r) => r.drivers.length <= 2);
+    }
+
+    const minLen = (d: DriverInfo) => Math.min(...d.routes.map((r) => r.length));
+
+    if (shortFirst) {
+      exact = [...exact].sort((a, b) => minLen(a) - minLen(b));
+      geozone = [...geozone].sort((a, b) => minLen(a) - minLen(b));
+      composite = [...composite].sort((a, b) => a.path.length - b.path.length);
+    }
+
+    return { exact, geozone, composite };
+  }, [baseResults, corridors, onlyPhone, maxOneTransfer, shortFirst]);
 
   const renderDriverList = (list: DriverInfo[]) => (
     <ul className="space-y-1 text-sm">
@@ -140,6 +178,54 @@ export default function DriverSearchDrawer({ bundle }: Props) {
               </Tabs>
             </DrawerFooter>
           )}
+          <div className="mt-4 border-t pt-4 text-sm">
+            <div className="mb-2 font-medium">Коридоры</div>
+            <div className="flex flex-wrap gap-2">
+              {bundle.corridors.map((c) => (
+                <label key={c.corridor_id} className="flex items-center gap-1 text-xs">
+                  <input
+                    type="checkbox"
+                    checked={corridors.has(c.corridor_id)}
+                    onChange={(e) => {
+                      setCorridors((prev) => {
+                        const next = new Set(prev);
+                        if (e.target.checked) next.add(c.corridor_id);
+                        else next.delete(c.corridor_id);
+                        return next;
+                      });
+                    }}
+                  />
+                  {c.name}
+                </label>
+              ))}
+            </div>
+            <div className="mt-3 flex flex-col gap-1">
+              <label className="flex items-center gap-1">
+                <input
+                  type="checkbox"
+                  checked={maxOneTransfer}
+                  onChange={(e) => setMaxOneTransfer(e.target.checked)}
+                />
+                ≤1 пересадки
+              </label>
+              <label className="flex items-center gap-1">
+                <input
+                  type="checkbox"
+                  checked={onlyPhone}
+                  onChange={(e) => setOnlyPhone(e.target.checked)}
+                />
+                Только с телефоном
+              </label>
+              <label className="flex items-center gap-1">
+                <input
+                  type="checkbox"
+                  checked={shortFirst}
+                  onChange={(e) => setShortFirst(e.target.checked)}
+                />
+                Сначала короткие
+              </label>
+            </div>
+          </div>
         </DrawerContent>
       </Drawer>
     </>

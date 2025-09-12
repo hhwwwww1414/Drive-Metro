@@ -68,17 +68,18 @@ export default function Legend({ bundle, activeLines, onToggle }: Props) {
         width: 320,
         maxHeight: 'calc(100vh - 24px)',
         overflow: 'auto',
-        background: '#fff',
-        border: '1px solid #e5e7eb',
+        background: 'var(--frame-bg)',
+        border: '1px solid var(--frame-border)',
         borderRadius: 12,
         boxShadow: '0 4px 24px rgba(0,0,0,.06)',
         padding: 16,
         zIndex: 3,
         fontFamily: 'Inter, system-ui, sans-serif',
+        color: 'var(--text)',
       }}
     >
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-        <h3 style={{ margin: 0, fontSize: 16, fontWeight: 600, color: '#111' }}>Коридоры и линии</h3>
+        <h3 style={{ margin: 0, fontSize: 16, fontWeight: 600, color: 'var(--text)' }}>Коридоры и линии</h3>
       </div>
       
       <div style={{ 

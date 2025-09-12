@@ -56,11 +56,12 @@ export default function RouteResultList({ routes, bundle, selected, onSelect }: 
         width: '100%',
         maxWidth: 360,
         padding: 8,
-        background: '#fff',
-        border: '1px solid #e5e7eb',
+        background: 'var(--frame-bg)',
+        border: '1px solid var(--frame-border)',
         borderRadius: 12,
         zIndex: 4,
         fontFamily: 'Inter, system-ui, sans-serif',
+        color: 'var(--text)',
       }}
     >
       {routes.map((r, idx) => {
@@ -76,8 +77,8 @@ export default function RouteResultList({ routes, bundle, selected, onSelect }: 
               textAlign: 'left',
               padding: '10px 12px',
               borderRadius: 12,
-              border: selected === idx ? '2px solid #E4002B' : '1px solid #d1d5db',
-              background: '#fff',
+              border: selected === idx ? '2px solid #E4002B' : '1px solid var(--btn-border)',
+              background: 'var(--frame-bg)',
               cursor: 'pointer',
               display: 'flex',
               flexDirection: 'column',
