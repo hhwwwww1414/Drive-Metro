@@ -1,3 +1,6 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 /* Базовые стили страницы */
 html, body {
   height: 100%;
