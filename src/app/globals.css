@@ -2,19 +2,42 @@
 html, body {
   height: 100%;
 }
+
+:root {
+  --bg: #f6f7fb;
+  --text: #111827;
+  --frame-bg: #fff;
+  --frame-border: #e5e7eb;
+  --btn-bg: #fff;
+  --btn-border: #d1d5db;
+  --btn-hover-bg: #f9fafb;
+  --btn-hover-border: #9ca3af;
+}
+
+html.dark {
+  --bg: #1f2937;
+  --text: #f9fafb;
+  --frame-bg: #111827;
+  --frame-border: #374151;
+  --btn-bg: #374151;
+  --btn-border: #4b5563;
+  --btn-hover-bg: #4b5563;
+  --btn-hover-border: #6b7280;
+}
+
 body {
   margin: 0;
-  background: #f6f7fb;
+  background: var(--bg);
   font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif;
-  color: #111827;
+  color: var(--text);
 }
 
 /* === Fixed map viewport === */
 .map-frame {
   position: fixed;            /* НЕ двигается со страницей */
   inset: 12px;                /* отступы от краёв окна */
-  background: #fff;
-  border: 1px solid #e5e7eb;
+  background: var(--frame-bg);
+  border: 1px solid var(--frame-border);
   border-radius: 12px;
   box-shadow: 0 4px 24px rgba(0,0,0,.06);
   overflow: hidden;
@@ -49,17 +72,18 @@ body {
   height: 36px;
   min-width: 36px;
   padding: 0 10px;
-  border: 1px solid #d1d5db;
-  background: #fff;
+  border: 1px solid var(--btn-border);
+  background: var(--btn-bg);
+  color: var(--text);
   border-radius: 8px;
   font: 500 14px/1 'Inter', system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
   cursor: pointer;
   transition: all 150ms ease-out;
   box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
-.map-btn:hover { 
-  background: #f9fafb; 
-  border-color: #9ca3af;
+.map-btn:hover {
+  background: var(--btn-hover-bg);
+  border-color: var(--btn-hover-border);
   box-shadow: 0 2px 6px rgba(0,0,0,0.15);
 }
 .map-btn:active {

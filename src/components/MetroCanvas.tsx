@@ -12,9 +12,19 @@ type Props = {
   bundle: DataBundle;
   activeLines: Set<string>;
   currentRoute?: RouteSegment[];
+  onToggleTheme: () => void;
+  onHideUI: () => void;
+  uiHidden?: boolean;
 };
 
-export default function MetroCanvas({ bundle, activeLines, currentRoute: route = [] }: Props) {
+export default function MetroCanvas({
+  bundle,
+  activeLines,
+  currentRoute: route = [],
+  onToggleTheme,
+  onHideUI,
+  uiHidden = false,
+}: Props) {
   // Анализируем маршруты для выделения общих участков
   const routeAnalysis = useMemo(() => {
     const analysis = analyzeRoutes(bundle.lines, bundle.linePaths, bundle.cities);
@@ -369,9 +379,10 @@ export default function MetroCanvas({ bundle, activeLines, currentRoute: route =
 
   return (
     <div ref={frameRef} className="map-frame">
-      <div className="map-toolbar">
-        <button 
-          className="map-btn" 
+      {!uiHidden && (
+        <div className="map-toolbar">
+        <button
+          className="map-btn"
           onClick={() => setScale((s) => Math.min(METRO_CONFIG.ZOOM_MAX, s * METRO_CONFIG.ZOOM_STEP))}
         >
           +
@@ -392,7 +403,7 @@ export default function MetroCanvas({ bundle, activeLines, currentRoute: route =
             Сбросить подсветку
           </button>
         )}
-        <div 
+        <div
           style={{
             marginLeft: 12,
             padding: '6px 12px',
@@ -406,7 +417,7 @@ export default function MetroCanvas({ bundle, activeLines, currentRoute: route =
         >
           {Math.round(scale * 100)}%
         </div>
-        <div 
+        <div
           style={{
             marginLeft: 8,
             padding: '6px 12px',
@@ -420,7 +431,10 @@ export default function MetroCanvas({ bundle, activeLines, currentRoute: route =
         >
           {routeAnalysis.mainBranches.length} основных веток
         </div>
+        <button className="map-btn" onClick={onToggleTheme}>Тема</button>
+        <button className="map-btn" onClick={onHideUI}>Скрыть интерфейс</button>
       </div>
+      )}
 
       <svg
         ref={svgRef}

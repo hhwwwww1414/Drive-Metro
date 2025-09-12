@@ -16,7 +16,7 @@ export function Drawer({ open, onOpenChange, children }: DrawerProps) {
       onClick={() => onOpenChange(false)}
     >
       <div
-        className="h-full w-full max-w-md overflow-y-auto rounded-l-xl bg-white p-4"
+        className="h-full w-full max-w-md overflow-y-auto rounded-l-xl bg-white p-4 dark:bg-gray-800 dark:text-white"
         onClick={(e) => e.stopPropagation()}
       >
         {children}
