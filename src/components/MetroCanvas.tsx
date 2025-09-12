@@ -351,9 +351,6 @@ export default function MetroCanvas({
     return placeLabels(bundle.cities, scale);
   }, [bundle.cities, scale]);
 
-  // Раньше здесь слушали события от Legend для массового переключения линий.
-  // После упрощения структуры страницы эта логика больше не нужна.
-
   return (
     <div ref={frameRef} className="map-frame">
       <div className="map-toolbar">
