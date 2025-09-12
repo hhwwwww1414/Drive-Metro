@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/drawer';
 import DriverCard from '@/components/DriverCard';
 import { ArrowLeftRight } from 'lucide-react';
+import { debounce } from '@/lib/utils';
 
 type Props = {
   bundle: DataBundle;
@@ -31,6 +32,7 @@ export default function DriverSearchDrawer({ bundle }: Props) {
   const [maxOneTransfer, setMaxOneTransfer] = useState(false);
   const [onlyPhone, setOnlyPhone] = useState(false);
   const [shortFirst, setShortFirst] = useState(false);
+  const [liveSearch, setLiveSearch] = useState(false);
 
   const cityOptions = bundle.cities.map((c) => ({
     value: c.city_id,
@@ -85,14 +87,25 @@ export default function DriverSearchDrawer({ bundle }: Props) {
     workerRef.current?.postMessage({ type: 'search', from, to });
   }, [from, to]);
 
+  const debouncedSearch = useMemo(
+    () => debounce(handleSearch, 250),
+    [handleSearch]
+  );
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setOpen(false);
-      if (e.key === 'Enter' && open) handleSearch();
+      if (e.key === 'Enter' && open && !liveSearch) handleSearch();
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [open, handleSearch]);
+  }, [open, handleSearch, liveSearch]);
+
+  useEffect(() => {
+    if (!liveSearch) return;
+    debouncedSearch();
+    return () => debouncedSearch.cancel();
+  }, [from, to, liveSearch, debouncedSearch]);
 
   const results = useMemo(() => {
     if (!baseResults) return null;
@@ -243,12 +256,22 @@ export default function DriverSearchDrawer({ bundle }: Props) {
               options={cityOptions}
               placeholder="Куда"
             />
-            <button
-              onClick={handleSearch}
-              className="w-full rounded bg-yellow-300 px-4 py-2 text-sm font-medium text-gray-800"
-            >
-              Найти перевозчика
-            </button>
+            {!liveSearch && (
+              <button
+                onClick={handleSearch}
+                className="w-full rounded bg-yellow-300 px-4 py-2 text-sm font-medium text-gray-800"
+              >
+                Найти перевозчика
+              </button>
+            )}
+            <label className="flex items-center gap-1 text-sm">
+              <input
+                type="checkbox"
+                checked={liveSearch}
+                onChange={(e) => setLiveSearch(e.target.checked)}
+              />
+              Живой поиск
+            </label>
           </div>
           {results && (
             <DrawerFooter>
