@@ -40,6 +40,17 @@ export default function Page() {
           }
           setActiveLines(next);
         }}
+        onToggleMany={(ids, on) => {
+          setActiveLines((prev) => {
+            const next = new Set(prev);
+            if (on) {
+              ids.forEach((id) => next.add(id));
+            } else {
+              ids.forEach((id) => next.delete(id));
+            }
+            return next;
+          });
+        }}
       />
       <MetroCanvas bundle={bundle} activeLines={activeLines} />
     </>

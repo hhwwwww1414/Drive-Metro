@@ -6,9 +6,10 @@ type Props = {
   bundle: DataBundle;
   activeLines: Set<string>;
   onToggle: (lineId: string) => void;
+  onToggleMany: (ids: string[], on: boolean) => void;
 };
 
-export default function Legend({ bundle, activeLines, onToggle }: Props) {
+export default function Legend({ bundle, activeLines, onToggle, onToggleMany }: Props) {
   const byCorridor: Record<string, string[]> = {};
   for (const l of bundle.lines) {
     if (!byCorridor[l.corridor_id]) byCorridor[l.corridor_id] = [];
@@ -52,11 +53,6 @@ export default function Legend({ bundle, activeLines, onToggle }: Props) {
       }
       return next;
     });
-  };
-
-  const toggleAll = (ids: string[], on: boolean) => {
-    const evt = new CustomEvent('legend:toggle-many', { detail: { ids, on } });
-    window.dispatchEvent(evt);
   };
 
   return (
@@ -109,14 +105,14 @@ export default function Legend({ bundle, activeLines, onToggle }: Props) {
         <div style={{ display: 'flex', gap: 6 }}>
           <button
             className="map-btn"
-            onClick={() => toggleAll(bundle.lines.map((l) => l.line_id), true)}
+            onClick={() => onToggleMany(bundle.lines.map((l) => l.line_id), true)}
             style={{ fontSize: 12, padding: '4px 8px', height: 28 }}
           >
             Все
           </button>
           <button
             className="map-btn"
-            onClick={() => toggleAll(bundle.lines.map((l) => l.line_id), false)}
+            onClick={() => onToggleMany(bundle.lines.map((l) => l.line_id), false)}
             style={{ fontSize: 12, padding: '4px 8px', height: 28 }}
           >
             Нет
@@ -145,16 +141,16 @@ export default function Legend({ bundle, activeLines, onToggle }: Props) {
                 {c.name}
               </div>
               <div style={{ display: 'flex', gap: 4 }}>
-                <button 
-                  className="map-btn" 
-                  onClick={() => toggleAll(lineIds, true)}
+                <button
+                  className="map-btn"
+                  onClick={() => onToggleMany(lineIds, true)}
                   style={{ fontSize: 11, padding: '2px 6px', height: 24, minWidth: 32 }}
                 >
                   Все
                 </button>
-                <button 
-                  className="map-btn" 
-                  onClick={() => toggleAll(lineIds, false)}
+                <button
+                  className="map-btn"
+                  onClick={() => onToggleMany(lineIds, false)}
                   style={{ fontSize: 11, padding: '2px 6px', height: 24, minWidth: 32 }}
                 >
                   Нет
