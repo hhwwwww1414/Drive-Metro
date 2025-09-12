@@ -73,6 +73,7 @@ export default function DriverSearchDrawer({ bundle }: Props) {
           composite: res.composite.map((r) => ({
             path: r.path.map((c) => labelIndex[c] || c),
             drivers: r.drivers.map(mapDriver),
+            transfers: r.transfers.map((c) => labelIndex[c] || c),
           })),
         };
         setBaseResults(mapped);
@@ -84,8 +85,13 @@ export default function DriverSearchDrawer({ bundle }: Props) {
 
   const handleSearch = useCallback(() => {
     if (!from || !to) return;
-    workerRef.current?.postMessage({ type: 'search', from, to });
-  }, [from, to]);
+    workerRef.current?.postMessage({
+      type: 'search',
+      from,
+      to,
+      maxTransfers: maxOneTransfer ? 1 : undefined,
+    });
+  }, [from, to, maxOneTransfer]);
 
   const debouncedSearch = useMemo(
     () => debounce(handleSearch, 250),
@@ -105,7 +111,7 @@ export default function DriverSearchDrawer({ bundle }: Props) {
     if (!liveSearch) return;
     debouncedSearch();
     return () => debouncedSearch.cancel();
-  }, [from, to, liveSearch, debouncedSearch]);
+  }, [from, to, liveSearch, debouncedSearch, maxOneTransfer]);
 
   const results = useMemo(() => {
     if (!baseResults) return null;
@@ -176,10 +182,10 @@ export default function DriverSearchDrawer({ bundle }: Props) {
     );
   }
 
-  function CompositeList({
+function CompositeList({
     list,
   }: {
-    list: { path: string[]; drivers: DriverInfo[] }[];
+    list: { path: string[]; drivers: DriverInfo[]; transfers: string[] }[];
   }) {
     const parentRef = useRef<HTMLDivElement>(null);
     const rowVirtualizer = useVirtualizer({
@@ -212,9 +218,11 @@ export default function DriverSearchDrawer({ bundle }: Props) {
                   {r.drivers.map((d, i) => (
                     <div key={d.id} className="space-y-1">
                       <DriverCard driver={d} />
-                      {i < r.path.length - 2 && (
+                      {i < r.transfers.length && (
                         <div className="px-2 text-xs text-gray-500">
-                          Пересадка: {cityIndex[r.path[i + 1]] || r.path[i + 1]}
+                          Пересадка: {
+                            cityIndex[r.transfers[i]] || r.transfers[i]
+                          }
                         </div>
                       )}
                     </div>
