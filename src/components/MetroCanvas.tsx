@@ -21,7 +21,7 @@ export default function MetroCanvas({
 }: Props) {
   // Анализируем маршруты для выделения общих участков (для отладки)
   useEffect(() => {
-    const analysis = analyzeRoutes(bundle.lines, bundle.linePaths, bundle.cities);
+    const analysis = analyzeRoutes(bundle.lines, bundle.linePaths);
     console.log('📊 Анализ маршрутов:');
     console.log(`  Основные ветки: ${analysis.mainBranches.length}`);
     console.log(`  Ответвления: ${analysis.extensions.length}`);
@@ -35,7 +35,7 @@ export default function MetroCanvas({
     topSegments.forEach((segment, i) => {
       console.log(`    ${i + 1}. ${segment.from} → ${segment.to} (${segment.lines.length} линий)`);
     });
-  }, [bundle.lines, bundle.linePaths, bundle.cities]);
+  }, [bundle.lines, bundle.linePaths]);
 
   // List of corridors to render as unified (merge overlapping segments)
   const unifiedCorridors = useMemo(() => new Set(['EW', 'SEVER', 'MUR', 'MSK-CRM', 'VVO-CRM']), []);
@@ -50,12 +50,12 @@ export default function MetroCanvas({
       if (!lines.length) continue;
       const lineIds = new Set(lines.map(l => l.line_id));
       const paths = bundle.linePaths.filter(p => lineIds.has(p.line_id));
-      const analysis = analyzeRoutes(lines, paths, bundle.cities);
+      const analysis = analyzeRoutes(lines, paths);
       const segments = createUnifiedSegments(analysis, cityIndex);
       out.push(...segments);
     }
     return out;
-  }, [bundle.lines, bundle.linePaths, bundle.cities, cityIndex, unifiedCorridors]);
+  }, [bundle.lines, bundle.linePaths, cityIndex, unifiedCorridors]);
 
   // Maps to know which lines pass through a station (for interchange ticks)
   const linesById = useMemo(() => {

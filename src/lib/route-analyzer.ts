@@ -1,4 +1,4 @@
-﻿import type { City, Line, LinePath } from './types';
+import type { City, Line, LinePath } from './types';
 import { edgeKey } from './geometry';
 
 export interface RouteSegment {
@@ -18,8 +18,7 @@ export interface RouteAnalysis {
 // Анализирует маршруты и выделяет общие участки
 export function analyzeRoutes(
   lines: Line[],
-  linePaths: LinePath[],
-  cities: City[]
+  linePaths: LinePath[]
 ): RouteAnalysis {
   // Создаем карту сегментов
   const segmentMap = new Map<string, RouteSegment>();
