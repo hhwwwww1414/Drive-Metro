@@ -46,7 +46,7 @@ export default function DriverSearchDrawer({ bundle }: Props) {
     return m;
   }, [bundle.cities]);
 
-  const workerRef = useRef<Worker>();
+  const workerRef = useRef<Worker | null>(null);
 
   useEffect(() => {
     const worker = new Worker(
@@ -58,7 +58,7 @@ export default function DriverSearchDrawer({ bundle }: Props) {
     ) => {
       const { type } = e.data;
       if (type === 'result') {
-        const res: DriverSearchResult = e.data.result;
+        const res: DriverSearchResult = e.data.result!;
         const mapRoute = (r: string[]) => r.map((c) => labelIndex[c] || c);
         const mapDriver = (d: DriverInfo): DriverInfo => ({
           ...d,
