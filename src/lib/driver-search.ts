@@ -3,6 +3,9 @@ import { loadDrivers } from './drivers';
 export interface DriverInfo {
   id: string;
   label: string;
+  phone?: string;
+  branches: string[];
+  corridors: string[];
   routes: string[][];
 }
 
@@ -27,7 +30,15 @@ export async function findExactDrivers(origin: string, destination: string): Pro
     const routes = (index.driverRoutes[id] || []).filter(
       (r) => r[0] === origin && r[r.length - 1] === destination
     );
-    out.push({ id, label: index.driverMeta[id]?.label || id, routes });
+    const meta = index.driverMeta[id] || { label: id, branches: [], corridors: [] };
+    out.push({
+      id,
+      label: meta.label,
+      phone: meta.phone,
+      branches: meta.branches,
+      corridors: meta.corridors,
+      routes,
+    });
   }
   return out;
 }
@@ -48,7 +59,15 @@ export async function findGeozoneDrivers(origin: string, destination: string): P
       }
     }
     if (routes.length > 0) {
-      out.push({ id, label: index.driverMeta[id]?.label || id, routes });
+      const meta = index.driverMeta[id] || { label: id, branches: [], corridors: [] };
+      out.push({
+        id,
+        label: meta.label,
+        phone: meta.phone,
+        branches: meta.branches,
+        corridors: meta.corridors,
+        routes,
+      });
     }
   }
   return out;
@@ -82,11 +101,21 @@ export async function findCompositeRoutes(
       const key = path.join('|') + '::' + drivers.join('|');
       if (seen.has(key)) continue;
       seen.add(key);
-      const driverInfos = drivers.map((id) => ({
-        id,
-        label: index.driverMeta[id]?.label || id,
-        routes: index.driverRoutes[id] || [],
-      }));
+      const driverInfos = drivers.map((id) => {
+        const meta = index.driverMeta[id] || {
+          label: id,
+          branches: [],
+          corridors: [],
+        };
+        return {
+          id,
+          label: meta.label,
+          phone: meta.phone,
+          branches: meta.branches,
+          corridors: meta.corridors,
+          routes: index.driverRoutes[id] || [],
+        };
+      });
       results.push({ path, drivers: driverInfos });
       continue;
     }
