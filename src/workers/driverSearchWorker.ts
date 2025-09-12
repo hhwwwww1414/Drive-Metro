@@ -11,6 +11,7 @@ interface SearchMessage {
   type: 'search';
   from: string;
   to: string;
+  maxTransfers?: number;
 }
 
 type WorkerMessage = LoadMessage | SearchMessage;
@@ -24,7 +25,11 @@ self.addEventListener('message', async (event: MessageEvent<WorkerMessage>) => {
       break;
     case 'search':
       try {
-        const result: DriverSearchResult = await searchDrivers(msg.from, msg.to);
+        const result: DriverSearchResult = await searchDrivers(
+          msg.from,
+          msg.to,
+          msg.maxTransfers
+        );
         (self as DedicatedWorkerGlobalScope).postMessage({ type: 'result', result });
       } catch (err) {
         (self as DedicatedWorkerGlobalScope).postMessage({

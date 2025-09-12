@@ -12,6 +12,7 @@ export interface DriverInfo {
 export interface CompositeRoute {
   path: string[];
   drivers: DriverInfo[];
+  transfers: string[];
 }
 
 export interface DriverSearchResult {
@@ -81,64 +82,124 @@ export async function findGeozoneDrivers(origin: string, destination: string): P
 export async function findCompositeRoutes(
   origin: string,
   destination: string,
-  edgeToDrivers: Record<string, string[]>
+  edgeToDrivers: Record<string, string[]>,
+  maxTransfers = Infinity
 ): Promise<CompositeRoute[]> {
   const index = await loadDrivers();
   origin = normalize(origin);
   destination = normalize(destination);
-  const adjacency: Record<string, { to: string; drivers: string[] }[]> = {};
-  for (const [key, drivers] of Object.entries(edgeToDrivers)) {
+
+  const adjacency: Record<string, string[]> = {};
+  for (const key of Object.keys(edgeToDrivers)) {
     const [from, to] = key.split('|');
     if (!adjacency[from]) adjacency[from] = [];
-    adjacency[from].push({ to, drivers });
+    adjacency[from].push(to);
   }
 
-  const results: CompositeRoute[] = [];
-  const queue: { city: string; path: string[]; drivers: string[] }[] = [
-    { city: origin, path: [origin], drivers: [] },
-  ];
-  const seen = new Set<string>();
-  const maxDepth = 3; // максимум три ребра (две пересадки)
-
-  while (queue.length) {
-    const { city, path, drivers } = queue.shift()!;
-    if (path.length > maxDepth + 1) continue;
-    if (city === destination && drivers.length > 1) {
-      const key = path.join('|') + '::' + drivers.join('|');
-      if (seen.has(key)) continue;
-      seen.add(key);
-      const driverInfos = drivers.map((id) => {
-        const meta = index.driverMeta[id] || {
-          label: id,
-          branches: [],
-          corridors: [],
-        };
-        return {
-          id,
-          label: meta.label,
-          phone: meta.phone,
-          branches: meta.branches,
-          corridors: meta.corridors,
-          routes: index.driverRoutes[id] || [],
-        };
-      });
-      results.push({ path, drivers: driverInfos });
-      continue;
-    }
-    const edges = adjacency[city] || [];
-    for (const edge of edges) {
-      if (path.includes(edge.to)) continue;
-      for (const d of edge.drivers) {
-        queue.push({ city: edge.to, path: [...path, edge.to], drivers: [...drivers, d] });
+  // BFS to compute shortest distances
+  const dist: Record<string, number> = { [origin]: 0 };
+  const q: string[] = [origin];
+  while (q.length) {
+    const city = q.shift()!;
+    const d = dist[city];
+    for (const n of adjacency[city] || []) {
+      if (dist[n] === undefined) {
+        dist[n] = d + 1;
+        q.push(n);
       }
     }
+  }
+  const targetDist = dist[destination];
+  if (targetDist === undefined) return [];
+
+  // Collect all shortest paths using DFS respecting distances
+  const paths: string[][] = [];
+  function dfs(city: string, path: string[]) {
+    if (city === destination) {
+      paths.push([...path]);
+      return;
+    }
+    const d = dist[city];
+    for (const n of adjacency[city] || []) {
+      if (dist[n] === d + 1) {
+        path.push(n);
+        dfs(n, path);
+        path.pop();
+      }
+    }
+  }
+  dfs(origin, [origin]);
+
+  const results: CompositeRoute[] = [];
+  const seen = new Set<string>();
+
+  for (const path of paths) {
+    if (path.length < 2) continue;
+
+    const segments: { start: number; end: number; drivers: Set<string> }[] = [];
+    let start = 0;
+    let current = new Set(edgeToDrivers[path[0] + '|' + path[1]] || []);
+    if (current.size === 0) continue;
+    for (let i = 2; i < path.length; i++) {
+      const key = path[i - 1] + '|' + path[i];
+      const nextSet = new Set(edgeToDrivers[key] || []);
+      const intersect = new Set([...current].filter((d) => nextSet.has(d)));
+      if (intersect.size > 0) {
+        current = intersect;
+      } else {
+        segments.push({ start, end: i - 1, drivers: current });
+        start = i - 1;
+        current = nextSet;
+      }
+    }
+    segments.push({ start, end: path.length - 1, drivers: current });
+
+    if (segments.length === 0 || segments.length > 3) continue;
+    if (segments.some((s) => s.drivers.size === 0)) continue;
+    if (segments.length - 1 > maxTransfers) continue;
+
+    const transferCities = segments.slice(0, -1).map((s) => path[s.end]);
+
+    function build(idx: number, chosen: string[]) {
+      if (idx === segments.length) {
+        const key = path.join('|') + '::' + chosen.join('|');
+        if (seen.has(key)) return;
+        seen.add(key);
+        const driverInfos = chosen.map((id) => {
+          const meta = index.driverMeta[id] || {
+            label: id,
+            branches: [],
+            corridors: [],
+          };
+          return {
+            id,
+            label: meta.label,
+            phone: meta.phone,
+            branches: meta.branches,
+            corridors: meta.corridors,
+            routes: index.driverRoutes[id] || [],
+          };
+        });
+        results.push({ path, drivers: driverInfos, transfers: transferCities });
+        return;
+      }
+      for (const d of segments[idx].drivers) {
+        build(idx + 1, [...chosen, d]);
+      }
+    }
+
+    build(0, []);
   }
 
   return results;
 }
 
 // Выполняет поиск и группирует результаты для UI
-export async function searchDrivers(origin: string, destination: string): Promise<DriverSearchResult> {
+export async function searchDrivers(
+  origin: string,
+  destination: string,
+  maxTransfers?: number
+): Promise<DriverSearchResult> {
   const index = await loadDrivers();
 
   const exact = await findExactDrivers(origin, destination);
@@ -148,7 +209,12 @@ export async function searchDrivers(origin: string, destination: string): Promis
   geozone = geozone.filter((d) => !seen.has(d.id));
   geozone.forEach((d) => seen.add(d.id));
 
-  let composite = await findCompositeRoutes(origin, destination, index.edgeToDrivers);
+  let composite = await findCompositeRoutes(
+    origin,
+    destination,
+    index.edgeToDrivers,
+    maxTransfers
+  );
   composite = composite.filter((route) =>
     route.drivers.every((d) => !seen.has(d.id))
   );
