@@ -6,7 +6,10 @@ export interface DriversIndex {
   subpathIndex: Record<string, string[]>;
   edgeToDrivers: Record<string, string[]>;
   driverRoutes: Record<string, string[][]>;
-  driverMeta: Record<string, { label: string }>;
+  driverMeta: Record<
+    string,
+    { label: string; phone?: string; branches: string[]; corridors: string[] }
+  >;
 }
 
 async function fetchText(url: string): Promise<string> {
@@ -67,7 +70,10 @@ export async function loadDrivers(): Promise<DriversIndex> {
   const subpathIndex: Record<string, Set<string>> = {};
   const edgeToDrivers: Record<string, Set<string>> = {};
   const driverRoutes: Record<string, string[][]> = {};
-  const driverMeta: Record<string, { label: string }> = {};
+  const driverMeta: Record<
+    string,
+    { label: string; phone?: string; branches: string[]; corridors: string[] }
+  > = {};
 
   for (const row of rows) {
     const rawDriver = row['Перевозчик'];
@@ -77,11 +83,28 @@ export async function loadDrivers(): Promise<DriversIndex> {
 
     const driverLabel = rawDriver.trim();
     const driverId = normalize(driverLabel);
+    const phoneMatch = driverLabel.match(/(\+?\d[\d\s-]+)/);
+    const phone = phoneMatch ? phoneMatch[1].replace(/\s+/g, '') : undefined;
+    const label = phoneMatch
+      ? driverLabel.replace(phoneMatch[1], '').trim()
+      : driverLabel;
+    const branches = row['Ветки (может обслужить)']
+      ? row['Ветки (может обслужить)']
+          .split(';')
+          .map((s) => s.trim())
+          .filter(Boolean)
+      : [];
+    const corridors = row['Коридоры (может обслужить)']
+      ? row['Коридоры (может обслужить)']
+          .split(';')
+          .map((s) => s.trim())
+          .filter(Boolean)
+      : [];
     const routes = parseRoutes(detail);
     if (routes.length === 0) continue;
 
     driverRoutes[driverId] = routes;
-    driverMeta[driverId] = { label: driverLabel };
+    driverMeta[driverId] = { label, phone, branches, corridors };
 
     for (const cities of routes) {
       // cityToDrivers
