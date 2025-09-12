@@ -1,5 +1,5 @@
 import { METRO_CONFIG } from './metro-config';
-import type { City, Line } from './types';
+import type { City, Line, LinePath } from './types';
 
 export interface Point {
   x: number;
@@ -62,7 +62,7 @@ export function calculateParallelOffsets(edges: Edge[]): ParallelEdge[] {
   const groups = groupEdgesBySegment(edges);
   const result: ParallelEdge[] = [];
   
-  for (const [, segmentEdges] of groups) {
+  for (const [segmentKey, segmentEdges] of groups) {
     // Сортируем линии по line_id для стабильного порядка
     const sortedEdges = segmentEdges.sort((a, b) => a.line.line_id.localeCompare(b.line.line_id));
     
@@ -99,7 +99,8 @@ export function calculateParallelOffsets(edges: Edge[]): ParallelEdge[] {
 export function createLinePath(
   a: Point,
   b: Point,
-  offset: number = 0
+  offset: number = 0,
+  radius: number = METRO_CONFIG.CORNER_RADIUS
 ): string {
   if (offset === 0) {
     // Прямая линия
@@ -124,12 +125,13 @@ export function createLinePath(
 // Создает путь с скруглениями для последовательности точек
 export function createRoundedPath(
   points: Point[],
-  offset: number = 0
+  offset: number = 0,
+  radius: number = METRO_CONFIG.CORNER_RADIUS
 ): string {
   if (points.length < 2) return '';
   
   if (points.length === 2) {
-    return createLinePath(points[0], points[1], offset);
+    return createLinePath(points[0], points[1], offset, radius);
   }
   
   const pathParts: string[] = [];
@@ -156,11 +158,11 @@ export function createRoundedPath(
     if (i < points.length - 2) {
       // Есть следующая точка - добавляем скругление
       const afterNext = points[i + 2];
-      const segment = createRoundedSegment(current, next, afterNext, offset);
+      const segment = createRoundedSegment(current, next, afterNext, offset, radius);
       pathParts.push(segment);
     } else {
       // Последний сегмент - прямая линия
-      const segment = createLinePath(current, next, offset);
+      const segment = createLinePath(current, next, offset, radius);
       pathParts.push(segment.replace(/^M \d+\.?\d* \d+\.?\d* /, 'L '));
     }
   }
@@ -172,8 +174,9 @@ export function createRoundedPath(
 function createRoundedSegment(
   a: Point,
   b: Point,
-  _c: Point,
-  offset: number = 0
+  c: Point,
+  offset: number = 0,
+  radius: number = METRO_CONFIG.CORNER_RADIUS
 ): string {
   if (offset === 0) {
     // Прямая линия с закруглением
@@ -182,9 +185,19 @@ function createRoundedSegment(
   
   // Смещенные точки
   const perpAB = perpendicular(a, b);
+  const perpBC = perpendicular(b, c);
+  
+  const offsetA = {
+    x: a.x + perpAB.x * offset,
+    y: a.y + perpAB.y * offset,
+  };
   const offsetB = {
     x: b.x + perpAB.x * offset,
     y: b.y + perpAB.y * offset,
+  };
+  const offsetC = {
+    x: c.x + perpBC.x * offset,
+    y: c.y + perpBC.y * offset,
   };
   
   // Пока используем прямые линии
