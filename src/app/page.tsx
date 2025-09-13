@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import Legend from '@/components/Legend';
 import MetroCanvas from '@/components/MetroCanvas';
+import FabDrawer from '@/components/FabDrawer';
 import { DataBundle } from '@/lib/types';
 import { loadData } from '@/lib/csv';
 
@@ -53,6 +54,9 @@ export default function Page() {
         }}
       />
       <MetroCanvas bundle={bundle} activeLines={activeLines} />
+      <FabDrawer>
+        <div className="p-4">Панель</div>
+      </FabDrawer>
     </>
   );
 }

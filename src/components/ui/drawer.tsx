@@ -8,11 +8,14 @@ export interface DrawerProps {
   children: React.ReactNode;
 }
 
-export function Drawer({ open, children }: DrawerProps) {
+export function Drawer({ open, onOpenChange, children }: DrawerProps) {
   if (!open) return null;
   return createPortal(
     <div className="fixed inset-0 z-40 pointer-events-none">
-      <div className="absolute inset-0 bg-black/40" />
+      <div
+        className="absolute inset-0 bg-black/40"
+        onClick={() => onOpenChange?.(false)}
+      />
       <div className="absolute inset-0 flex justify-end">
         <div className="pointer-events-auto h-full w-full max-w-md overflow-y-auto rounded-l-xl bg-white p-4 shadow-lg dark:bg-gray-800 dark:text-white">
           {children}
