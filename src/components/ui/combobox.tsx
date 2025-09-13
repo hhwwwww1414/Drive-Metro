@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { cn } from '@/lib/utils';
 
 export interface ComboboxOption {
@@ -15,23 +15,33 @@ export interface ComboboxProps {
 
 export function Combobox({ value, onChange, options, placeholder }: ComboboxProps) {
   const [open, setOpen] = useState(false);
-  const selected = options.find((o) => o.value === value);
+  const [query, setQuery] = useState('');
+
+  useEffect(() => {
+    const selected = options.find((o) => o.value === value);
+    setQuery(selected ? selected.label : '');
+  }, [value, options]);
+
+  const filtered = options.filter((o) =>
+    o.label.toLowerCase().includes(query.toLowerCase())
+  );
 
   return (
     <div className="relative">
       <input
         className="w-full rounded border px-2 py-2 text-sm"
         placeholder={placeholder}
-        value={selected ? selected.label : ''}
+        value={query}
         onFocus={() => setOpen(true)}
         onChange={(e) => {
-          const match = options.find((o) => o.label === e.target.value);
-          if (match) onChange(match.value);
+          setQuery(e.target.value);
+          setOpen(true);
         }}
+        onBlur={() => setOpen(false)}
       />
-      {open && (
+      {open && filtered.length > 0 && (
         <ul className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md border bg-white shadow">
-          {options.map((o) => (
+          {filtered.map((o) => (
             <li
               key={o.value}
               className={cn(
@@ -40,6 +50,7 @@ export function Combobox({ value, onChange, options, placeholder }: ComboboxProp
               )}
               onMouseDown={() => {
                 onChange(o.value);
+                setQuery(o.label);
                 setOpen(false);
               }}
             >
