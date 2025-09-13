@@ -40,3 +40,14 @@ export type DataBundle = {
   linePaths: LinePath[];
 };
 
+
+export interface Driver {
+  id: string;
+  path: string[];
+}
+
+export interface RouteCatalog {
+  drivers: Driver[];
+  edgeToDrivers: Record<string, string[]>;
+  adj: Record<string, string[]>;
+}
