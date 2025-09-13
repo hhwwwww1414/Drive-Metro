@@ -1,5 +1,13 @@
 // Загрузка и парсинг CSV из /public/data
-import type { City, Corridor, DataBundle, Line, LinePath } from './types';
+import type {
+  City,
+  Corridor,
+  DataBundle,
+  Line,
+  LinePath,
+  Driver,
+  CityGrid,
+} from './types';
 import Papa from 'papaparse';
 
 async function fetchText(url: string): Promise<string> {
@@ -20,6 +28,54 @@ function parseCSV(text: string): Record<string, string>[] {
       rec[key.trim()] = typeof value === 'string' ? value.trim() : '';
     });
     return rec;
+  });
+}
+
+function trimSpaces(s: string): string {
+  return s.trim();
+}
+
+function unifyDashes(s: string): string {
+  return s.replace(/[\u2012\u2013\u2014\u2015]/g, '-');
+}
+
+function collapseSpaces(s: string): string {
+  return s.replace(/\s{2,}/g, ' ');
+}
+
+function normalizeToken(s: string): string {
+  return trimSpaces(collapseSpaces(unifyDashes(s)));
+}
+
+function toCityGrid(rows: Record<string, string>[]): CityGrid {
+  const grid: CityGrid = {};
+  rows.forEach((r) => {
+    const name = normalizeToken(r.name || r.label || r.city || r.city_id || '');
+    const id = r.city_id || r.id || r.label || r.name;
+    if (name && id) grid[name] = id;
+  });
+  return grid;
+}
+
+function mapCity(name: string, grid: CityGrid): string {
+  const norm = normalizeToken(name);
+  const mapped = grid[norm];
+  if (!mapped) console.warn(`Unknown city: ${name}`);
+  return mapped ?? norm;
+}
+
+function toDrivers(rows: Record<string, string>[], grid: CityGrid): Driver[] {
+  return rows.map((r) => {
+    const name = r['Перевозчик'];
+    const raw = r['Города (детализация)'] || '';
+    const variants = raw
+      .split(/[|;]+/)
+      .map((v) => normalizeToken(v))
+      .filter(Boolean)
+      .map((v) => ({
+        city_ids: v.split('-').map((c) => mapCity(c, grid)),
+      }));
+    return { name, variants } as Driver;
   });
 }
 
@@ -71,12 +127,15 @@ function toLinePaths(rows: Record<string, string>[]): LinePath[] {
 }
 
 export async function loadData(): Promise<DataBundle> {
-  const [citiesTxt, corridorsTxt, linesTxt, pathsTxt] = await Promise.all([
-    fetchText('/data/cities.csv'),
-    fetchText('/data/corridors.csv'),
-    fetchText('/data/lines.csv'),
-    fetchText('/data/line_paths.csv'),
-  ]);
+  const [citiesTxt, corridorsTxt, linesTxt, pathsTxt, driversTxt, gridTxt] =
+    await Promise.all([
+      fetchText('/data/cities.csv'),
+      fetchText('/data/corridors.csv'),
+      fetchText('/data/lines.csv'),
+      fetchText('/data/line_paths.csv'),
+      fetchText('/data/drivers.csv'),
+      fetchText('/data/cities_grid.csv'),
+    ]);
 
   const cities = toCities(parseCSV(citiesTxt));
   const corridors = toCorridors(parseCSV(corridorsTxt)).sort(
@@ -86,6 +145,8 @@ export async function loadData(): Promise<DataBundle> {
     (a, b) => (a.draw_order ?? Number.POSITIVE_INFINITY) - (b.draw_order ?? Number.POSITIVE_INFINITY)
   );
   const linePaths = toLinePaths(parseCSV(pathsTxt));
+  const cityGrid = toCityGrid(parseCSV(gridTxt));
+  const drivers = toDrivers(parseCSV(driversTxt), cityGrid);
 
-  return { cities, corridors, lines, linePaths };
+  return { cities, corridors, lines, linePaths, drivers, cityGrid };
 }
