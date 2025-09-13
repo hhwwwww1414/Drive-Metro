@@ -8,6 +8,10 @@ import { METRO_CONFIG } from '@/lib/metro-config';
 import { analyzeRoutes, createUnifiedSegments } from '@/lib/route-analyzer';
 import type { RouteSegment } from '@/lib/router';
 
+const DEBUG_ROUTE_ANALYSIS =
+  process.env.NODE_ENV !== 'production' &&
+  process.env.NEXT_PUBLIC_DEBUG_ROUTE_ANALYSIS === 'true';
+
 type Props = {
   bundle: DataBundle;
   activeLines: Set<string>;
@@ -21,6 +25,8 @@ export default function MetroCanvas({
 }: Props) {
   // Анализируем маршруты для выделения общих участков (для отладки)
   useEffect(() => {
+    if (!DEBUG_ROUTE_ANALYSIS) return;
+
     const analysis = analyzeRoutes(bundle.lines, bundle.linePaths, bundle.cities);
     console.log('📊 Анализ маршрутов:');
     console.log(`  Основные ветки: ${analysis.mainBranches.length}`);
