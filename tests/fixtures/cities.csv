@@ -1,0 +1,5 @@
+city_id,label,x,y,is_hub,is_corridor_hub
+A,A,0,0,0,0
+B,B,10,0,1,1
+C,C,20,0,0,0
+D,D,10,10,0,0
