@@ -66,7 +66,8 @@ function toCityGrid(rows: Record<string, string>[]): CityGrid {
 
 function mapCity(name: string, grid: CityGrid): string | undefined {
   const norm = normalizeToken(name);
-  const alias = CITY_ALIASES[norm] ?? norm;
+  if (norm.toLowerCase() === 'nan') return undefined;
+  const alias = CITY_ALIASES[norm.toLowerCase()] ?? norm;
   return grid[alias];
 }
 
