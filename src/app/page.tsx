@@ -3,12 +3,17 @@ import { useEffect, useState } from 'react';
 import Legend from '@/components/Legend';
 import MetroCanvas from '@/components/MetroCanvas';
 import FabDrawer from '@/components/FabDrawer';
+import RouteSelector from '@/components/RouteSelector';
+import RouteResultList from '@/components/RouteResultList';
 import { DataBundle } from '@/lib/types';
 import { loadData } from '@/lib/csv';
+import type { RouteSegment } from '@/lib/router';
 
 export default function Page() {
   const [bundle, setBundle] = useState<DataBundle | null>(null);
   const [activeLines, setActiveLines] = useState<Set<string>>(new Set());
+  const [routes, setRoutes] = useState<RouteSegment[][]>([]);
+  const [selected, setSelected] = useState<number | null>(null);
 
   useEffect(() => {
     loadData()
@@ -53,7 +58,26 @@ export default function Page() {
           });
         }}
       />
-      <MetroCanvas bundle={bundle} activeLines={activeLines} />
+      <MetroCanvas
+        bundle={bundle}
+        activeLines={activeLines}
+        currentRoute={selected != null ? routes[selected] : []}
+      />
+      <RouteSelector
+        bundle={bundle}
+        onRoute={(r) => {
+          setRoutes(r);
+          setSelected(r.length ? 0 : null);
+        }}
+      />
+      {routes.length > 0 && (
+        <RouteResultList
+          routes={routes}
+          bundle={bundle}
+          selected={selected}
+          onSelect={setSelected}
+        />
+      )}
       <FabDrawer>
         <div className="p-4">Панель</div>
       </FabDrawer>

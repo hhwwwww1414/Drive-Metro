@@ -1,8 +1,9 @@
 'use client';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { DataBundle } from '@/lib/types';
 import { findRoutes } from '@/lib/graph';
 import type { RouteSegment } from '@/lib/router';
+import { Combobox } from './ui/combobox';
 
 type Props = {
   bundle: DataBundle;
@@ -12,6 +13,15 @@ type Props = {
 export default function RouteSelector({ bundle, onRoute }: Props) {
   const [from, setFrom] = useState('');
   const [to, setTo] = useState('');
+
+  const options = useMemo(
+    () =>
+      bundle.cities.map((c) => ({
+        value: c.city_id,
+        label: c.label || c.city_id,
+      })),
+    [bundle.cities]
+  );
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,30 +47,22 @@ export default function RouteSelector({ bundle, onRoute }: Props) {
         fontFamily: 'Inter, system-ui, sans-serif',
       }}
     >
-      <select
-        value={from}
-        onChange={(e) => setFrom(e.target.value)}
-        style={{ padding: '4px 6px', border: '1px solid #d1d5db', borderRadius: 4 }}
-      >
-        <option value="">Откуда</option>
-        {bundle.cities.map((c) => (
-          <option key={c.city_id} value={c.city_id}>
-            {c.label || c.city_id}
-          </option>
-        ))}
-      </select>
-      <select
-        value={to}
-        onChange={(e) => setTo(e.target.value)}
-        style={{ padding: '4px 6px', border: '1px solid #d1d5db', borderRadius: 4 }}
-      >
-        <option value="">Куда</option>
-        {bundle.cities.map((c) => (
-          <option key={c.city_id} value={c.city_id}>
-            {c.label || c.city_id}
-          </option>
-        ))}
-      </select>
+      <div style={{ width: 150 }}>
+        <Combobox
+          value={from}
+          onChange={setFrom}
+          options={options}
+          placeholder="Откуда"
+        />
+      </div>
+      <div style={{ width: 150 }}>
+        <Combobox
+          value={to}
+          onChange={setTo}
+          options={options}
+          placeholder="Куда"
+        />
+      </div>
       <button type="submit" className="map-btn" style={{ padding: '4px 8px' }}>
         Найти
       </button>
