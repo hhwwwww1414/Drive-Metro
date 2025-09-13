@@ -1,13 +1,15 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import Legend from '@/components/Legend';
-import MetroCanvas from '@/components/MetroCanvas';
+import MetroCanvas, { type MetroCanvasHandle } from '@/components/MetroCanvas';
 import { DataBundle } from '@/lib/types';
 import { loadData } from '@/lib/csv';
 
 export default function Page() {
   const [bundle, setBundle] = useState<DataBundle | null>(null);
   const [activeLines, setActiveLines] = useState<Set<string>>(new Set());
+  const canvasRef = useRef<MetroCanvasHandle>(null);
+  const [lockedPath, setLockedPath] = useState<string[] | null>(null);
 
   useEffect(() => {
     loadData()
@@ -16,6 +18,14 @@ export default function Page() {
         setActiveLines(new Set(b.lines.map((l) => l.line_id))); // включить все
       })
       .catch((err) => console.error('CSV load failed', err));
+  }, []);
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setLockedPath(null);
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
   }, []);
 
   if (!bundle) {
@@ -51,8 +61,22 @@ export default function Page() {
             return next;
           });
         }}
+        onHoverPath={(ids) => {
+          if (ids) {
+            canvasRef.current?.highlightPath(ids);
+          } else if (lockedPath) {
+            canvasRef.current?.highlightPath(lockedPath);
+          } else {
+            canvasRef.current?.clearHighlights();
+          }
+        }}
+        onSelectPath={(ids) => {
+          setLockedPath(ids);
+          canvasRef.current?.highlightPath(ids);
+          canvasRef.current?.fitToPath(ids);
+        }}
       />
-      <MetroCanvas bundle={bundle} activeLines={activeLines} />
+      <MetroCanvas ref={canvasRef} bundle={bundle} activeLines={activeLines} />
     </>
   );
 }
