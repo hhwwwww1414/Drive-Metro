@@ -1,7 +1,9 @@
 'use client';
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useMemo } from 'react';
 import Legend from '@/components/Legend';
 import MetroCanvas, { type MetroCanvasHandle } from '@/components/MetroCanvas';
+import SearchDrawer from '@/components/SearchDrawer';
+import { createDriverIndex, type DriverIndex } from '@/lib/driver-index';
 import { DataBundle } from '@/lib/types';
 import { loadData } from '@/lib/csv';
 
@@ -10,6 +12,12 @@ export default function Page() {
   const [activeLines, setActiveLines] = useState<Set<string>>(new Set());
   const canvasRef = useRef<MetroCanvasHandle>(null);
   const [lockedPath, setLockedPath] = useState<string[] | null>(null);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+
+  const driverIndex = useMemo<DriverIndex | null>(
+    () => (bundle ? createDriverIndex(bundle.drivers) : null),
+    [bundle]
+  );
 
   useEffect(() => {
     loadData()
@@ -28,7 +36,7 @@ export default function Page() {
     return () => window.removeEventListener('keydown', handler);
   }, []);
 
-  if (!bundle) {
+  if (!bundle || !driverIndex) {
     return (
       <div className="fixed inset-0 grid place-items-center">
         <div className="text-gray-500">Загрузка данных…</div>
@@ -75,6 +83,20 @@ export default function Page() {
           canvasRef.current?.highlightPath(ids);
           canvasRef.current?.fitToPath(ids);
         }}
+      />
+      <button
+        className="map-btn"
+        style={{ position: 'fixed', top: 12, right: 12, zIndex: 5 }}
+        onClick={() => setDrawerOpen(true)}
+      >
+        Поиск
+      </button>
+      <SearchDrawer
+        open={drawerOpen}
+        onOpenChange={setDrawerOpen}
+        bundle={bundle}
+        driverIndex={driverIndex}
+        canvasRef={canvasRef}
       />
       <MetroCanvas ref={canvasRef} bundle={bundle} activeLines={activeLines} />
     </>
