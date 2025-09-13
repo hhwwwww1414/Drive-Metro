@@ -96,12 +96,19 @@ function findBestLabelPosition(
       }
     }
   }
-  
-  // Если не нашли свободное место, пробуем лидер
+
+  // Если не нашли свободное место, пробуем альтернативные варианты
   if (zoom >= METRO_CONFIG.LOD_ZOOM_THRESHOLDS.SHOW_ALL_LABELS) {
-    return createLeaderLabel(city, occupiedBoxes);
+    const leaderPlacement = createLeaderLabel(city, occupiedBoxes);
+    if (leaderPlacement) {
+      return leaderPlacement;
+    }
+    const adaptive = createAdaptiveLeaderLabel(city, occupiedBoxes);
+    if (adaptive) {
+      return adaptive;
+    }
   }
-  
+
   return null;
 }
 
@@ -153,6 +160,48 @@ function createLeaderLabel(
   }
   
   return null;
+}
+
+// Пытается расположить подпись по дуге с адаптивной длиной лидера
+function createAdaptiveLeaderLabel(
+  city: City,
+  occupiedBoxes: LabelBoundingBox[]
+): LabelPlacement | null {
+  const startRadius = METRO_CONFIG.LABEL_LEADER_DISTANCE;
+  const maxRadius = startRadius * 3;
+  const angleStep = 30; // градусов
+
+  for (let radius = startRadius; radius <= maxRadius; radius += METRO_CONFIG.LABEL_OFFSET_STEP) {
+    for (let angle = 0; angle < 360; angle += angleStep) {
+      const rad = (angle * Math.PI) / 180;
+      const position = {
+        x: city.x + radius * Math.cos(rad),
+        y: city.y + radius * Math.sin(rad),
+      };
+
+      if (isPositionFree(position, city.label, occupiedBoxes, city.is_hub === 1)) {
+        return {
+          city_id: city.city_id,
+          x: position.x,
+          y: position.y,
+          quadrant: angleToQuadrant(angle),
+          radius,
+          hasLeader: true,
+          leaderEnd: { x: city.x, y: city.y },
+        };
+      }
+    }
+  }
+
+  return null;
+}
+
+function angleToQuadrant(angle: number): 'NE' | 'SE' | 'SW' | 'NW' {
+  const normalized = ((angle % 360) + 360) % 360;
+  if (normalized < 90) return 'NE';
+  if (normalized < 180) return 'SE';
+  if (normalized < 270) return 'SW';
+  return 'NW';
 }
 
 // Создает SVG path для лидера
