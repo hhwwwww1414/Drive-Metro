@@ -3,9 +3,8 @@ import { useEffect, useState, useRef } from 'react';
 import Legend from '@/components/Legend';
 import MetroCanvas, { type MetroCanvasHandle } from '@/components/MetroCanvas';
 import SearchDrawer from '@/components/SearchDrawer';
-import { getDriverIndex, type DriverIndex } from '@/lib/driver-index';
 import { DataBundle } from '@/lib/types';
-import { loadData, initDriverIndex } from '@/lib/csv';
+import { loadData } from '@/lib/csv';
 
 export default function Page() {
   const [bundle, setBundle] = useState<DataBundle | null>(null);
@@ -14,21 +13,11 @@ export default function Page() {
   const [lockedPath, setLockedPath] = useState<string[] | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
 
-  const [driverIndex, setDriverIndex] = useState<DriverIndex | null>(null);
-  const [indexError, setIndexError] = useState<string | null>(null);
-
   useEffect(() => {
     loadData()
       .then((b) => {
         setBundle(b);
         setActiveLines(new Set(b.lines.map((l) => l.line_id))); // включить все
-        try {
-          initDriverIndex(b.drivers);
-          setDriverIndex(getDriverIndex());
-        } catch (err) {
-          console.error('Driver index init failed', err);
-          setIndexError(err instanceof Error ? err.message : String(err));
-        }
       })
       .catch((err) => console.error('CSV load failed', err));
   }, []);
@@ -51,15 +40,6 @@ export default function Page() {
 
   return (
     <>
-      {(!driverIndex || indexError) && (
-        <div
-          className={`fixed left-0 right-0 top-0 z-10 text-center text-sm py-1 ${
-            indexError ? 'bg-red-200 text-red-900' : 'bg-yellow-200'
-          }`}
-        >
-          {indexError ? 'Ошибка индекса маршрутов' : 'Инициализация индекса маршрутов…'}
-        </div>
-      )}
       <Legend
         bundle={bundle}
         activeLines={activeLines}
@@ -98,24 +78,19 @@ export default function Page() {
           canvasRef.current?.fitToPath(ids);
         }}
       />
-      {driverIndex && !indexError && (
-        <>
-          <button
-            className="map-btn"
-            style={{ position: 'fixed', top: 12, right: 12, zIndex: 5 }}
-            onClick={() => setDrawerOpen(true)}
-          >
-            Поиск
-          </button>
-          <SearchDrawer
-            open={drawerOpen}
-            onOpenChange={setDrawerOpen}
-            bundle={bundle}
-            driverIndex={driverIndex}
-            canvasRef={canvasRef}
-          />
-        </>
-      )}
+      <button
+        className="map-btn"
+        style={{ position: 'fixed', top: 12, right: 12, zIndex: 5 }}
+        onClick={() => setDrawerOpen(true)}
+      >
+        Поиск
+      </button>
+      <SearchDrawer
+        open={drawerOpen}
+        onOpenChange={setDrawerOpen}
+        bundle={bundle}
+        canvasRef={canvasRef}
+      />
       <MetroCanvas ref={canvasRef} bundle={bundle} activeLines={activeLines} />
     </>
   );

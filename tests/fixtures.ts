@@ -10,6 +10,7 @@ import type {
   Driver,
   CityGrid,
 } from '../src/lib/types';
+import { createDriverIndex } from '../src/lib/driver-index';
 
 function parseCsv(file: string): Record<string, string>[] {
   const text = fs.readFileSync(file, 'utf8');
@@ -64,5 +65,6 @@ export function loadSampleBundle(): DataBundle {
   const linePaths = toLinePaths(parseCsv(path.join(base, 'line_paths.csv')));
   const drivers: Driver[] = [];
   const cityGrid: CityGrid = {};
-  return { cities, corridors, lines, linePaths, drivers, cityGrid };
+  const driverIndex = createDriverIndex(drivers);
+  return { cities, corridors, lines, linePaths, drivers, cityGrid, driverIndex };
 }

@@ -9,7 +9,7 @@ import type {
   CityGrid,
 } from './types';
 import Papa from 'papaparse';
-export { initDriverIndex } from './driver-index';
+import { initDriverIndex, getDriverIndex } from './driver-index';
 
 async function fetchText(url: string): Promise<string> {
   const res = await fetch(url, { cache: 'no-store' });
@@ -158,6 +158,8 @@ export async function loadData(): Promise<DataBundle> {
   const linePaths = toLinePaths(parseCSV(pathsTxt));
   const cityGrid = toCityGrid(parseCSV(gridTxt));
   const drivers = toDrivers(parseCSV(driversTxt), cityGrid);
+  initDriverIndex(drivers);
+  const driverIndex = getDriverIndex();
 
-  return { cities, corridors, lines, linePaths, drivers, cityGrid };
+  return { cities, corridors, lines, linePaths, drivers, cityGrid, driverIndex };
 }
