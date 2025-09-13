@@ -83,31 +83,48 @@ export function createDriverIndex(drivers: Driver[]): DriverIndex {
   };
 }
 
-export function getDriversByExactPair(index: DriverIndex, from: string, to: string): string[] {
+let currentIndex: DriverIndex | null = null;
+
+export function initDriverIndex(drivers: Driver[]): void {
+  currentIndex = createDriverIndex(drivers);
+}
+
+function requireIndex(): DriverIndex {
+  if (!currentIndex) {
+    throw new Error('Driver index has not been initialized');
+  }
+  return currentIndex;
+}
+
+export function getDriverIndex(): DriverIndex {
+  return requireIndex();
+}
+
+function collectDrivers(index: DriverIndex, routeIds: number[]): string[] {
+  const set = new Set<string>();
+  routeIds.forEach((rid) => {
+    index.routeCatalog[rid]?.drivers.forEach((d) => set.add(d));
+  });
+  return Array.from(set);
+}
+
+export function getDriversByExactPair(from: string, to: string, index: DriverIndex = requireIndex()): string[] {
   const key = `${from}::${to}`;
   const routeIds = index.pairExact[key] || [];
-  const set = new Set<string>();
-  routeIds.forEach((rid) => {
-    index.routeCatalog[rid]?.drivers.forEach((d) => set.add(d));
-  });
-  return Array.from(set);
+  return collectDrivers(index, routeIds);
 }
 
-export function getDriversBySubpath(index: DriverIndex, from: string, to: string): string[] {
+export function getDriversBySubpath(from: string, to: string, index: DriverIndex = requireIndex()): string[] {
   const key = `${from}::${to}`;
   const routeIds = index.subpath[key] || [];
-  const set = new Set<string>();
-  routeIds.forEach((rid) => {
-    index.routeCatalog[rid]?.drivers.forEach((d) => set.add(d));
-  });
-  return Array.from(set);
+  return collectDrivers(index, routeIds);
 }
 
-export function getDriversByEdge(index: DriverIndex, a: string, b: string): string[] {
+export function getDriversByEdge(a: string, b: string, index: DriverIndex = requireIndex()): string[] {
   const key = edgeKey(a, b);
   return index.edgeToDrivers[key] || [];
 }
 
-export function getAdjacentCities(index: DriverIndex, city: string): string[] {
+export function getAdjacentCities(city: string, index: DriverIndex = requireIndex()): string[] {
   return index.adj[city] || [];
 }
