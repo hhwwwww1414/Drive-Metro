@@ -1,5 +1,6 @@
 // Загрузка и парсинг CSV из /public/data
 import type { City, Corridor, DataBundle, Line, LinePath } from './types';
+import Papa from 'papaparse';
 
 async function fetchText(url: string): Promise<string> {
   const res = await fetch(url, { cache: 'no-store' });
@@ -8,23 +9,18 @@ async function fetchText(url: string): Promise<string> {
 }
 
 function parseCSV(text: string): Record<string, string>[] {
-  const lines = text
-    .split(/\r?\n/)
-    .map((l) => l.trim())
-    .filter((l) => l.length > 0);
+  const { data } = Papa.parse<Record<string, string>>(text, {
+    header: true,
+    skipEmptyLines: true,
+  });
 
-  if (lines.length === 0) return [];
-  const headers = lines[0].split(',').map((h) => h.trim());
-  const rows: Record<string, string>[] = [];
-
-  for (let i = 1; i < lines.length; i++) {
-    const cols = lines[i].split(','); // наши CSV без запятых в названиях
-    if (cols.length === 1 && cols[0] === '') continue;
+  return data.map((row) => {
     const rec: Record<string, string> = {};
-    headers.forEach((h, j) => (rec[h] = (cols[j] ?? '').trim()));
-    rows.push(rec);
-  }
-  return rows;
+    Object.entries(row).forEach(([key, value]) => {
+      rec[key.trim()] = typeof value === 'string' ? value.trim() : '';
+    });
+    return rec;
+  });
 }
 
 function toCities(rows: Record<string, string>[]): City[] {
