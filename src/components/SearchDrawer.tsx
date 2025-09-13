@@ -13,7 +13,7 @@ interface Props {
   onOpenChange: (open: boolean) => void;
   bundle: DataBundle;
   driverIndex: DriverIndex;
-  canvasRef: RefObject<MetroCanvasHandle>;
+  canvasRef: RefObject<MetroCanvasHandle | null>;
 }
 
 export default function SearchDrawer({
