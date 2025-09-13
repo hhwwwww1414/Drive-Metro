@@ -47,6 +47,13 @@ function normalizeToken(s: string): string {
   return trimSpaces(collapseSpaces(unifyDashes(s)));
 }
 
+const CITY_ALIASES: Record<string, string> = {
+  'ставрополь': 'Армавир',
+  'самара': 'Тольятти',
+  'когалым': 'Сургут',
+  'ачинск': 'Красноярск',
+};
+
 function toCityGrid(rows: Record<string, string>[]): CityGrid {
   const grid: CityGrid = {};
   rows.forEach((r) => {
@@ -57,11 +64,10 @@ function toCityGrid(rows: Record<string, string>[]): CityGrid {
   return grid;
 }
 
-function mapCity(name: string, grid: CityGrid): string {
+function mapCity(name: string, grid: CityGrid): string | undefined {
   const norm = normalizeToken(name);
-  const mapped = grid[norm];
-  if (!mapped) console.warn(`Unknown city: ${name}`);
-  return mapped ?? norm;
+  const alias = CITY_ALIASES[norm] ?? norm;
+  return grid[alias];
 }
 
 function toDrivers(rows: Record<string, string>[], grid: CityGrid): Driver[] {
