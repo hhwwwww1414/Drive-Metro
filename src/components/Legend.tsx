@@ -7,9 +7,11 @@ type Props = {
   activeLines: Set<string>;
   onToggle: (lineId: string) => void;
   onToggleMany: (ids: string[], on: boolean) => void;
+  onHoverPath?: (ids: string[] | null) => void;
+  onSelectPath?: (ids: string[]) => void;
 };
 
-export default function Legend({ bundle, activeLines, onToggle, onToggleMany }: Props) {
+export default function Legend({ bundle, activeLines, onToggle, onToggleMany, onHoverPath, onSelectPath }: Props) {
   const byCorridor: Record<string, string[]> = {};
   for (const l of bundle.lines) {
     if (!byCorridor[l.corridor_id]) byCorridor[l.corridor_id] = [];
@@ -164,6 +166,13 @@ export default function Legend({ bundle, activeLines, onToggle, onToggleMany }: 
                 .map((l) => {
                   const on = activeLines.has(l.line_id);
                   const isExpanded = expanded.has(l.line_id);
+                  const variant = lineVariants.get(l.line_id)?.[0];
+                  const ids = variant
+                    ? variant.cities
+                    : bundle.linePaths
+                        .filter((p) => p.line_id === l.line_id)
+                        .sort((a, b) => a.seq - b.seq)
+                        .map((p) => p.city_id);
                   return (
                     <div key={l.line_id}>
                       <label
@@ -182,16 +191,19 @@ export default function Legend({ bundle, activeLines, onToggle, onToggleMany }: 
                         }}
                         onMouseEnter={(e) => {
                           if (!on) e.currentTarget.style.background = '#f3f4f6';
+                          onHoverPath?.(ids);
                         }}
                         onMouseLeave={(e) => {
                           if (!on) e.currentTarget.style.background = '#f9fafb';
+                          onHoverPath?.(null);
                         }}
+                        onClick={() => onSelectPath?.(ids)}
                       >
                         <input
                           type="checkbox"
                           checked={on}
                           onChange={() => onToggle(l.line_id)}
-                          style={{ 
+                          style={{
                             width: 14, 
                             height: 14,
                             accentColor: l.color,

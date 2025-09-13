@@ -1,9 +1,17 @@
 ﻿'use client';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { DataBundle, Line } from '@/lib/types';
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  forwardRef,
+  useImperativeHandle,
+} from 'react';
+import { DataBundle, Line, type City } from '@/lib/types';
 import { buildParallelEdgesForActive, mapCities, tryGetXY } from '@/lib/graph';
 import { placeLabels } from '@/lib/label-placer';
-import { createLinePath, createLeaderPath, edgeKey } from '@/lib/geometry';
+import { createLinePath, createLeaderPath, edgeKey, createLinePathFromCities } from '@/lib/geometry';
 import { METRO_CONFIG } from '@/lib/metro-config';
 import { analyzeRoutes, createUnifiedSegments } from '@/lib/route-analyzer';
 import type { RouteSegment } from '@/lib/router';
@@ -18,11 +26,20 @@ type Props = {
   currentRoute?: RouteSegment[];
 };
 
-export default function MetroCanvas({
-  bundle,
-  activeLines,
-  currentRoute: route = [],
-}: Props) {
+export interface MetroCanvasHandle {
+  highlightPath: (cities: string[]) => void;
+  fitToPath: (cities: string[]) => void;
+  clearHighlights: () => void;
+}
+
+const MetroCanvas = forwardRef<MetroCanvasHandle, Props>(function MetroCanvas(
+  {
+    bundle,
+    activeLines,
+    currentRoute: route = [],
+  }: Props,
+  ref
+) {
   // Анализируем маршруты для выделения общих участков (для отладки)
   useEffect(() => {
     if (!DEBUG_ROUTE_ANALYSIS) return;
@@ -112,6 +129,9 @@ export default function MetroCanvas({
   const [currentRoute, setCurrentRoute] = useState<RouteSegment[]>(route);
   useEffect(() => { setCurrentRoute(route); }, [route]);
 
+  // Path highlight overlay state
+  const [highlightPathD, setHighlightPathD] = useState<string | null>(null);
+
   const routeSegments = useMemo(() => {
     const keys = new Set<string>();
     for (const seg of currentRoute) {
@@ -152,6 +172,71 @@ export default function MetroCanvas({
   const drag = useRef<{ x: number; y: number; tx0: number; ty0: number; active: boolean }>({
     x: 0, y: 0, tx0: 0, ty0: 0, active: false,
   });
+
+  const highlightPath = useCallback(
+    (cities: string[]) => {
+      if (!cities || cities.length < 2) {
+        setHighlightPathD(null);
+        return;
+      }
+      const pseudoCities = cities.map((id) => ({ city_id: id } as City));
+      const d = createLinePathFromCities(pseudoCities, cityIndex as Record<string, City>, 0);
+      setHighlightPathD(d || null);
+    },
+    [cityIndex]
+  );
+
+  const fitToPath = useCallback(
+    (cities: string[]) => {
+      if (!cities || cities.length === 0) return;
+      const coords = cities
+        .map((id) => cityIndex[id])
+        .filter(Boolean) as { x: number; y: number }[];
+      if (coords.length === 0) return;
+
+      let minX = Infinity,
+        minY = Infinity,
+        maxX = -Infinity,
+        maxY = -Infinity;
+      for (const c of coords) {
+        if (c.x < minX) minX = c.x;
+        if (c.y < minY) minY = c.y;
+        if (c.x > maxX) maxX = c.x;
+        if (c.y > maxY) maxY = c.y;
+      }
+      const bboxW = maxX - minX;
+      const bboxH = maxY - minY;
+
+      const pad = METRO_CONFIG.FIT_PADDING;
+      const w = frameSize.w - pad * 2;
+      const h = frameSize.h - pad * 2;
+      if (w <= 0 || h <= 0) return;
+
+      const sx = w / (bboxW || 1);
+      const sy = h / (bboxH || 1);
+      const s = Math.min(sx, sy);
+
+      const cxData = (minX + maxX) / 2;
+      const cyData = (minY + maxY) / 2;
+      const cxView = frameSize.w / 2;
+      const cyView = frameSize.h / 2;
+
+      setScale(s);
+      setTx(cxView - cxData * s);
+      setTy(cyView - cyData * s);
+    },
+    [cityIndex, frameSize.w, frameSize.h]
+  );
+
+  const clearHighlights = useCallback(() => {
+    setHighlightPathD(null);
+  }, []);
+
+  useImperativeHandle(
+    ref,
+    () => ({ highlightPath, fitToPath, clearHighlights }),
+    [highlightPath, fitToPath, clearHighlights]
+  );
 
   const fitToData = useCallback(() => {
     const pad = METRO_CONFIG.FIT_PADDING;
@@ -201,12 +286,13 @@ export default function MetroCanvas({
         setHighlightedLine(null);
         setHoveredCity(null);
         setCurrentRoute([]);
+        clearHighlights();
       }
     };
-    
+
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
+  }, [clearHighlights]);
 
   // Wheel zoom
   const onWheel = (e: React.WheelEvent<SVGSVGElement>) => {
@@ -503,6 +589,39 @@ export default function MetroCanvas({
           })}
         </g>
       </svg>
+      {/* Highlight overlay */}
+      <svg
+        className="map-svg"
+        style={{ position: 'absolute', left: 0, top: 0, pointerEvents: 'none' }}
+        width={frameSize.w}
+        height={frameSize.h}
+      >
+        <defs>
+          <filter id="highlight-glow" x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur stdDeviation="3" result="colored" />
+            <feMerge>
+              <feMergeNode in="colored" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+        </defs>
+        <g transform={`translate(${tx},${ty}) scale(${scale})`}>
+          {highlightPathD && (
+            <path
+              d={highlightPathD}
+              stroke="#fbbf24"
+              strokeWidth={METRO_CONFIG.LINE_WIDTH_HIGHLIGHTED + 4}
+              fill="none"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="non-scaling"
+              filter="url(#highlight-glow)"
+            />
+          )}
+        </g>
+      </svg>
     </div>
   );
-}
+});
+
+export default MetroCanvas;
