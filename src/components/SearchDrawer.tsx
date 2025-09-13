@@ -2,7 +2,6 @@
 
 import { useState, useMemo, RefObject } from 'react';
 import type { DataBundle } from '@/lib/types';
-import type { DriverIndex } from '@/lib/driver-index';
 import type { MetroCanvasHandle } from './MetroCanvas';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from './ui/drawer';
 import CatalogView from './CatalogView';
@@ -12,7 +11,6 @@ interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   bundle: DataBundle;
-  driverIndex: DriverIndex;
   canvasRef: RefObject<MetroCanvasHandle | null>;
 }
 
@@ -20,7 +18,6 @@ export default function SearchDrawer({
   open,
   onOpenChange,
   bundle,
-  driverIndex,
   canvasRef,
 }: Props) {
   const [query, setQuery] = useState('');
@@ -72,7 +69,7 @@ export default function SearchDrawer({
         ) : (
           <CatalogView
             bundle={bundle}
-            driverIndex={driverIndex}
+            driverIndex={bundle.driverIndex}
             onSelect={handleSelect}
           />
         )}

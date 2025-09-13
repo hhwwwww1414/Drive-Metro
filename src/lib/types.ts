@@ -1,3 +1,5 @@
+import type { DriverIndex } from './driver-index';
+
 export type City = {
   city_id: string;
   label: string;
@@ -51,5 +53,6 @@ export type DataBundle = {
   linePaths: LinePath[];
   drivers: Driver[];
   cityGrid: CityGrid;
+  driverIndex: DriverIndex;
 };
 
