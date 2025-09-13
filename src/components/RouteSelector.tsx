@@ -1,18 +1,25 @@
 'use client';
 import { useMemo, useState } from 'react';
 import { DataBundle } from '@/lib/types';
-import { findRoutes } from '@/lib/graph';
+import { findRoutes, findRoutesGeozone, findRoutesBFS } from '@/lib/graph';
 import type { RouteSegment } from '@/lib/router';
 import { Combobox } from './ui/combobox';
 
+type SearchResults = {
+  exact: RouteSegment[][];
+  geo: RouteSegment[][];
+  bfs: RouteSegment[][];
+};
+
 type Props = {
   bundle: DataBundle;
-  onRoute: (routes: RouteSegment[][]) => void;
+  onRoute: (res: SearchResults) => void;
 };
 
 export default function RouteSelector({ bundle, onRoute }: Props) {
   const [from, setFrom] = useState('');
   const [to, setTo] = useState('');
+  const [maxTransfers, setMaxTransfers] = useState<number | 'any'>('any');
 
   const options = useMemo(
     () =>
@@ -26,8 +33,15 @@ export default function RouteSelector({ bundle, onRoute }: Props) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!from || !to) return;
-    const routes = findRoutes(bundle, from, to);
-    onRoute(routes);
+    const limit = maxTransfers === 'any' ? Infinity : Number(maxTransfers);
+    const res: SearchResults = {
+      exact: findRoutes(bundle, from, to).filter(
+        (r) => r.filter((s) => s.transfer).length <= limit
+      ),
+      geo: findRoutesGeozone(bundle, from, to, limit),
+      bfs: findRoutesBFS(bundle, from, to, limit),
+    };
+    onRoute(res);
   };
 
   return (
@@ -63,6 +77,18 @@ export default function RouteSelector({ bundle, onRoute }: Props) {
           placeholder="Куда"
         />
       </div>
+      <select
+        value={maxTransfers}
+        onChange={(e) =>
+          setMaxTransfers(e.target.value === 'any' ? 'any' : Number(e.target.value))
+        }
+        className="rounded border px-2 py-1 text-sm"
+      >
+        <option value="any">Пересадки: любые</option>
+        <option value={0}>Без пересадок</option>
+        <option value={1}>До 1</option>
+        <option value={2}>До 2</option>
+      </select>
       <button type="submit" className="map-btn" style={{ padding: '4px 8px' }}>
         Найти
       </button>

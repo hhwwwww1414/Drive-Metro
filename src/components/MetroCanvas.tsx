@@ -12,12 +12,14 @@ type Props = {
   bundle: DataBundle;
   activeLines: Set<string>;
   currentRoute?: RouteSegment[];
+  focusRoute?: RouteSegment[];
 };
 
 export default function MetroCanvas({
   bundle,
   activeLines,
   currentRoute: route = [],
+  focusRoute,
 }: Props) {
   // Анализируем маршруты для выделения общих участков (для отладки)
   useEffect(() => {
@@ -105,6 +107,9 @@ export default function MetroCanvas({
   const [hoveredCity, setHoveredCity] = useState<string | null>(null);
   const [currentRoute, setCurrentRoute] = useState<RouteSegment[]>(route);
   useEffect(() => { setCurrentRoute(route); }, [route]);
+  useEffect(() => {
+    if (focusRoute && focusRoute.length) fitToSegments(focusRoute);
+  }, [focusRoute, fitToSegments]);
 
   const routeSegments = useMemo(() => {
     const keys = new Set<string>();
@@ -175,6 +180,49 @@ export default function MetroCanvas({
     dataBBox.w,
     dataBBox.h,
   ]);
+
+  const fitToSegments = useCallback(
+    (segments: RouteSegment[]) => {
+      if (!segments.length) return;
+      let minX = +Infinity,
+        minY = +Infinity,
+        maxX = -Infinity,
+        maxY = -Infinity;
+      for (const seg of segments) {
+        const a = tryGetXY(seg.from, cityIndex);
+        const b = tryGetXY(seg.to, cityIndex);
+        if (a) {
+          if (a.x < minX) minX = a.x;
+          if (a.y < minY) minY = a.y;
+          if (a.x > maxX) maxX = a.x;
+          if (a.y > maxY) maxY = a.y;
+        }
+        if (b) {
+          if (b.x < minX) minX = b.x;
+          if (b.y < minY) minY = b.y;
+          if (b.x > maxX) maxX = b.x;
+          if (b.y > maxY) maxY = b.y;
+        }
+      }
+      if (!isFinite(minX) || !isFinite(minY) || !isFinite(maxX) || !isFinite(maxY))
+        return;
+      const pad = METRO_CONFIG.FIT_PADDING;
+      const w = frameSize.w - pad * 2;
+      const h = frameSize.h - pad * 2;
+      if (w <= 0 || h <= 0) return;
+      const sx = w / (maxX - minX || 1);
+      const sy = h / (maxY - minY || 1);
+      const s = Math.min(sx, sy);
+      setScale(s);
+      const cxData = (minX + maxX) / 2;
+      const cyData = (minY + maxY) / 2;
+      const cxView = frameSize.w / 2;
+      const cyView = frameSize.h / 2;
+      setTx(cxView - cxData * s);
+      setTy(cyView - cyData * s);
+    },
+    [cityIndex, frameSize.w, frameSize.h]
+  );
 
   // наблюдаем размер рамки
   useEffect(() => {
