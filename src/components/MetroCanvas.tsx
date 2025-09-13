@@ -131,97 +131,6 @@ export default function MetroCanvas({
 
   const hasRoute = currentRoute.length > 0;
 
-  const [driverHoverSegs, setDriverHoverSegs] = useState<Set<string>>(new Set());
-  const [driverFixedSegs, setDriverFixedSegs] = useState<Set<string>>(new Set());
-  const [driverHoverCities, setDriverHoverCities] = useState<Set<string>>(new Set());
-  const [driverFixedCities, setDriverFixedCities] = useState<Set<string>>(new Set());
-
-  const driverSegments = useMemo(
-    () => (driverFixedSegs.size ? driverFixedSegs : driverHoverSegs),
-    [driverFixedSegs, driverHoverSegs]
-  );
-  const driverCities = useMemo(
-    () => (driverFixedCities.size ? driverFixedCities : driverHoverCities),
-    [driverFixedCities, driverHoverCities]
-  );
-  const hasDriver = driverSegments.size > 0;
-
-  const routesToSets = useCallback((routes: string[][]) => {
-    const segs = new Set<string>();
-    const cities = new Set<string>();
-    for (const r of routes) {
-      r.forEach((c) => cities.add(c));
-      for (let i = 0; i < r.length - 1; i++) {
-        segs.add(edgeKey(r[i], r[i + 1]));
-      }
-    }
-    return { segs, cities };
-  }, []);
-
-  const fitToPaths = useCallback(
-    (paths: string[][]) => {
-      const pts: { x: number; y: number }[] = [];
-      for (const p of paths) {
-        for (const id of p) {
-          const c = cityIndex[id];
-          if (c) pts.push({ x: c.x, y: c.y });
-        }
-      }
-      if (!pts.length) return;
-      let minX = Infinity,
-        minY = Infinity,
-        maxX = -Infinity,
-        maxY = -Infinity;
-      for (const p of pts) {
-        if (p.x < minX) minX = p.x;
-        if (p.y < minY) minY = p.y;
-        if (p.x > maxX) maxX = p.x;
-        if (p.y > maxY) maxY = p.y;
-      }
-      const pad = METRO_CONFIG.FIT_PADDING;
-      const w = frameSize.w - pad * 2;
-      const h = frameSize.h - pad * 2;
-      if (w <= 0 || h <= 0) return;
-      const sx = w / (maxX - minX || 1);
-      const sy = h / (maxY - minY || 1);
-      const s = Math.min(sx, sy);
-      setScale(s);
-      const cxData = (minX + maxX) / 2;
-      const cyData = (minY + maxY) / 2;
-      const cxView = frameSize.w / 2;
-      const cyView = frameSize.h / 2;
-      setTx(cxView - cxData * s);
-      setTy(cyView - cyData * s);
-    },
-    [cityIndex, frameSize.w, frameSize.h]
-  );
-
-  useEffect(() => {
-    const onHover = (e: Event) => {
-      const routes = (e as CustomEvent<string[][] | null>).detail;
-      if (routes && routes.length) {
-        const { segs, cities } = routesToSets(routes);
-        setDriverHoverSegs(segs);
-        setDriverHoverCities(cities);
-      } else {
-        setDriverHoverSegs(new Set());
-        setDriverHoverCities(new Set());
-      }
-    };
-    const onSelect = (e: Event) => {
-      const routes = (e as CustomEvent<string[][]>).detail;
-      const { segs, cities } = routesToSets(routes);
-      setDriverFixedSegs(segs);
-      setDriverFixedCities(cities);
-      fitToPaths(routes);
-    };
-    window.addEventListener('driver:hover', onHover as EventListener);
-    window.addEventListener('driver:select', onSelect as EventListener);
-    return () => {
-      window.removeEventListener('driver:hover', onHover as EventListener);
-      window.removeEventListener('driver:select', onSelect as EventListener);
-    };
-  }, [routesToSets, fitToPaths]);
   
   // Обработчик клика по линии для подсветки маршрута
   const handleLineClick = useCallback((lineId: string) => {
@@ -286,10 +195,6 @@ export default function MetroCanvas({
         setHighlightedLine(null);
         setHoveredCity(null);
         setCurrentRoute([]);
-        setDriverHoverSegs(new Set());
-        setDriverFixedSegs(new Set());
-        setDriverHoverCities(new Set());
-        setDriverFixedCities(new Set());
       }
     };
     
@@ -367,13 +272,11 @@ export default function MetroCanvas({
             if (!a || !b) return null;
 
             const segKey = `${edgeKey(edge.a, edge.b)}::${edge.line.corridor_id}`;
-            const keySimple = edgeKey(edge.a, edge.b);
-            const inDriver = driverSegments.has(keySimple);
-            const inRoute = routeSegments.has(segKey) || inDriver;
+            const inRoute = routeSegments.has(segKey);
             const isHighlighted = inRoute || highlightedLine === edge.line.line_id;
             const isDimmed = highlightedLine
               ? highlightedLine !== edge.line.line_id
-              : (hasRoute || hasDriver) && !inRoute;
+              : hasRoute && !inRoute;
 
             const dash = edge.line.style === 'dashed' ? '6,6' :
                          edge.line.style === 'dotted' ? '2,8' : undefined;
@@ -473,8 +376,7 @@ export default function MetroCanvas({
           {bundle.cities.map((city) => {
             const isHovered = hoveredCity === city.city_id;
             const isHub = city.is_hub === 1;
-            const isRouteCity =
-              routeCities.has(city.city_id) || driverCities.has(city.city_id);
+            const isRouteCity = routeCities.has(city.city_id);
             
             return (
               <g key={city.city_id}>
