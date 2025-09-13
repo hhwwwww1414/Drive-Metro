@@ -2,7 +2,6 @@
 import { useEffect, useState } from 'react';
 import Legend from '@/components/Legend';
 import MetroCanvas from '@/components/MetroCanvas';
-import DriverSearchDrawer from '@/components/DriverSearchDrawer';
 import { DataBundle } from '@/lib/types';
 import { loadData } from '@/lib/csv';
 
@@ -54,7 +53,6 @@ export default function Page() {
         }}
       />
       <MetroCanvas bundle={bundle} activeLines={activeLines} />
-      <DriverSearchDrawer bundle={bundle} />
     </>
   );
 }
