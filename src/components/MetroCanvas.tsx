@@ -295,28 +295,43 @@ const MetroCanvas = forwardRef<MetroCanvasHandle, Props>(function MetroCanvas(
   }, [clearHighlights]);
 
   // Wheel zoom
-  const onWheel = (e: React.WheelEvent<SVGSVGElement>) => {
-    e.preventDefault();
-    const delta = -e.deltaY;
-    const k = Math.exp(delta * 0.0015);
-    const newScale = Math.min(METRO_CONFIG.ZOOM_MAX, Math.max(METRO_CONFIG.ZOOM_MIN, scale * k));
+  const onWheel = useCallback(
+    (e: WheelEvent) => {
+      e.preventDefault();
+      const delta = -e.deltaY;
+      const k = Math.exp(delta * 0.0015);
+      const newScale = Math.min(
+        METRO_CONFIG.ZOOM_MAX,
+        Math.max(METRO_CONFIG.ZOOM_MIN, scale * k)
+      );
 
-    const pt = svgRef.current!.createSVGPoint();
-    pt.x = e.clientX; pt.y = e.clientY;
-    const ctm = svgRef.current!.getScreenCTM();
-    if (!ctm) return;
-    const p = pt.matrixTransform(ctm.inverse());
+      const pt = svgRef.current!.createSVGPoint();
+      pt.x = e.clientX;
+      pt.y = e.clientY;
+      const ctm = svgRef.current!.getScreenCTM();
+      if (!ctm) return;
+      const p = pt.matrixTransform(ctm.inverse());
 
-    const x = p.x, y = p.y;
-    const nx = x * newScale + tx;
-    const ny = y * newScale + ty;
-    const ox = x * scale + tx;
-    const oy = y * scale + ty;
+      const x = p.x,
+        y = p.y;
+      const nx = x * newScale + tx;
+      const ny = y * newScale + ty;
+      const ox = x * scale + tx;
+      const oy = y * scale + ty;
 
-    setScale(newScale);
-    setTx(tx + (ox - nx));
-    setTy(ty + (oy - ny));
-  };
+      setScale(newScale);
+      setTx(tx + (ox - nx));
+      setTy(ty + (oy - ny));
+    },
+    [scale, tx, ty]
+  );
+
+  useEffect(() => {
+    const svg = svgRef.current;
+    if (!svg) return;
+    svg.addEventListener('wheel', onWheel, { passive: false });
+    return () => svg.removeEventListener('wheel', onWheel);
+  }, [onWheel]);
 
       const onPointerDown = (e: React.PointerEvent<SVGSVGElement>) => {
     // Игнорируем клики по элементам (линиям, станциям)
@@ -348,7 +363,6 @@ const MetroCanvas = forwardRef<MetroCanvasHandle, Props>(function MetroCanvas(
       <svg
         ref={svgRef}
         className="map-svg"
-        onWheel={onWheel}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
