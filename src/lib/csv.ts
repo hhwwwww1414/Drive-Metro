@@ -9,6 +9,7 @@ import type {
   CityGrid,
 } from './types';
 import Papa from 'papaparse';
+export { initDriverIndex } from './driver-index';
 
 async function fetchText(url: string): Promise<string> {
   const res = await fetch(url, { cache: 'no-store' });
