@@ -1,7 +1,15 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import Papa from 'papaparse';
-import type { DataBundle, City, Corridor, Line, LinePath } from '../src/lib/types';
+import type {
+  DataBundle,
+  City,
+  Corridor,
+  Line,
+  LinePath,
+  Driver,
+  CityGrid,
+} from '../src/lib/types';
 
 function parseCsv(file: string): Record<string, string>[] {
   const text = fs.readFileSync(file, 'utf8');
@@ -54,5 +62,7 @@ export function loadSampleBundle(): DataBundle {
   const corridors = toCorridors(parseCsv(path.join(base, 'corridors.csv')));
   const lines = toLines(parseCsv(path.join(base, 'lines.csv')));
   const linePaths = toLinePaths(parseCsv(path.join(base, 'line_paths.csv')));
-  return { cities, corridors, lines, linePaths };
+  const drivers: Driver[] = [];
+  const cityGrid: CityGrid = {};
+  return { cities, corridors, lines, linePaths, drivers, cityGrid };
 }
