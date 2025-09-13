@@ -96,6 +96,57 @@ function compareCost(a: Cost, b: Cost): number {
   return a.transfers - b.transfers || a.length - b.length;
 }
 
+// Simple binary heap based priority queue
+class PriorityQueue<T> {
+  private data: T[] = [];
+  constructor(private compare: (a: T, b: T) => number) {}
+
+  push(item: T) {
+    this.data.push(item);
+    this.bubbleUp(this.data.length - 1);
+  }
+
+  pop(): T | undefined {
+    if (this.data.length === 0) return undefined;
+    const top = this.data[0];
+    const last = this.data.pop()!;
+    if (this.data.length > 0) {
+      this.data[0] = last;
+      this.bubbleDown(0);
+    }
+    return top;
+  }
+
+  get length() {
+    return this.data.length;
+  }
+
+  private bubbleUp(index: number) {
+    while (index > 0) {
+      const parent = (index - 1) >> 1;
+      if (this.compare(this.data[index], this.data[parent]) >= 0) break;
+      [this.data[index], this.data[parent]] = [this.data[parent], this.data[index]];
+      index = parent;
+    }
+  }
+
+  private bubbleDown(index: number) {
+    const n = this.data.length;
+    while (true) {
+      let smallest = index;
+      const left = index * 2 + 1;
+      const right = index * 2 + 2;
+      if (left < n && this.compare(this.data[left], this.data[smallest]) < 0)
+        smallest = left;
+      if (right < n && this.compare(this.data[right], this.data[smallest]) < 0)
+        smallest = right;
+      if (smallest === index) break;
+      [this.data[index], this.data[smallest]] = [this.data[smallest], this.data[index]];
+      index = smallest;
+    }
+  }
+}
+
 function buildWeightedGraph(bundle: DataBundle): {
   graph: WeightedGraph;
   cityLines: Map<string, Set<string>>;
@@ -168,15 +219,16 @@ function shortestPath(
   startNodes: string[],
   endNodes: Set<string>
 ): Path | null {
-  const queue: Array<{ node: string; cost: Cost; path: string[] }> = [];
+  const queue = new PriorityQueue<{ node: string; cost: Cost; path: string[] }>(
+    (a, b) => compareCost(a.cost, b.cost)
+  );
   for (const n of startNodes) {
     queue.push({ node: n, cost: { transfers: 0, length: 0 }, path: [n] });
   }
   const seen = new Map<string, Cost>();
 
   while (queue.length) {
-    queue.sort((a, b) => compareCost(a.cost, b.cost));
-    const cur = queue.shift()!;
+    const cur = queue.pop()!;
     if (endNodes.has(cur.node)) return { nodes: cur.path, cost: cur.cost };
     const prevBest = seen.get(cur.node);
     if (prevBest && compareCost(cur.cost, prevBest) > 0) continue;
@@ -218,7 +270,8 @@ function kShortestPaths(
   const first = shortestPath(graphOrig, startNodes, endNodes);
   if (!first) return [];
   const A: Path[] = [first];
-  const B: Path[] = [];
+  const B = new PriorityQueue<Path>((a, b) => compareCost(a.cost, b.cost));
+  const bSet = new Set<string>();
 
   for (let k1 = 1; k1 < k; k1++) {
     const prev = A[k1 - 1];
@@ -249,15 +302,18 @@ function kShortestPaths(
         const rootCost = pathCost(rootPath, graphOrig);
         const totalCost = addCost(rootCost, spurPath.cost);
         const candidate: Path = { nodes: totalNodes, cost: totalCost };
-        if (!B.some((p) => arraysEqual(p.nodes, totalNodes))) {
+        const key = totalNodes.join('->');
+        if (!bSet.has(key)) {
           B.push(candidate);
+          bSet.add(key);
         }
       }
     }
 
     if (!B.length) break;
-    B.sort((a, b) => compareCost(a.cost, b.cost));
-    A.push(B.shift()!);
+    const next = B.pop()!;
+    bSet.delete(next.nodes.join('->'));
+    A.push(next);
   }
 
   return A;
