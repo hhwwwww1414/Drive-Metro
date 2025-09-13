@@ -73,7 +73,10 @@ function toDrivers(rows: Record<string, string>[], grid: CityGrid): Driver[] {
       .map((v) => normalizeToken(v))
       .filter(Boolean)
       .map((v) => ({
-        city_ids: v.split('-').map((c) => mapCity(c, grid)),
+        city_ids: v
+          .split(/\s-\s/)
+          .map((c) => mapCity(c.trim(), grid))
+          .filter(Boolean),
       }));
     return { name, variants } as Driver;
   });
