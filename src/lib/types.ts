@@ -33,10 +33,23 @@ export type LinePath = {
   city_id: string;
 };
 
+export type RouteVariant = {
+  city_ids: string[];
+};
+
+export type Driver = {
+  name: string;
+  variants: RouteVariant[];
+};
+
+export type CityGrid = Record<string, string>;
+
 export type DataBundle = {
   cities: City[];
   corridors: Corridor[];
   lines: Line[];
   linePaths: LinePath[];
+  drivers: Driver[];
+  cityGrid: CityGrid;
 };
 
