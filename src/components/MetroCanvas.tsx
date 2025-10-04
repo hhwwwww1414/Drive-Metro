@@ -30,6 +30,9 @@ export interface MetroCanvasHandle {
   highlightPath: (cities: string[]) => void;
   fitToPath: (cities: string[]) => void;
   clearHighlights: () => void;
+  zoomIn: () => void;
+  zoomOut: () => void;
+  resetView: () => void;
 }
 
 const MetroCanvas = forwardRef<MetroCanvasHandle, Props>(function MetroCanvas(
@@ -156,6 +159,7 @@ const MetroCanvas = forwardRef<MetroCanvasHandle, Props>(function MetroCanvas(
   }, [currentRoute]);
 
   const hasRoute = currentRoute.length > 0;
+  const dimOpacity = hasRoute ? 0.15 : METRO_CONFIG.OPACITY_DIM;
 
   
   // Обработчик клика по линии для подсветки маршрута
@@ -232,10 +236,42 @@ const MetroCanvas = forwardRef<MetroCanvasHandle, Props>(function MetroCanvas(
     setHighlightPathD(null);
   }, []);
 
-  useImperativeHandle(
-    ref,
-    () => ({ highlightPath, fitToPath, clearHighlights }),
-    [highlightPath, fitToPath, clearHighlights]
+  const zoomByFactor = useCallback(
+    (factor: number) => {
+      const svg = svgRef.current;
+      if (!svg) return;
+
+      const origin = { x: frameSize.w / 2, y: frameSize.h / 2 };
+      const pt = svg.createSVGPoint();
+      pt.x = origin.x;
+      pt.y = origin.y;
+      const ctm = svg.getScreenCTM();
+      if (!ctm) return;
+      const p = pt.matrixTransform(ctm.inverse());
+
+      setScale((prevScale) => {
+        const newScale = Math.min(
+          METRO_CONFIG.ZOOM_MAX,
+          Math.max(METRO_CONFIG.ZOOM_MIN, prevScale * factor)
+        );
+
+        if (newScale === prevScale) return prevScale;
+
+        setTx((prevTx) => {
+          const ox = p.x * prevScale + prevTx;
+          const nx = p.x * newScale + prevTx;
+          return prevTx + (ox - nx);
+        });
+        setTy((prevTy) => {
+          const oy = p.y * prevScale + prevTy;
+          const ny = p.y * newScale + prevTy;
+          return prevTy + (oy - ny);
+        });
+
+        return newScale;
+      });
+    },
+    [frameSize.w, frameSize.h]
   );
 
   const fitToData = useCallback(() => {
@@ -266,6 +302,19 @@ const MetroCanvas = forwardRef<MetroCanvasHandle, Props>(function MetroCanvas(
     dataBBox.w,
     dataBBox.h,
   ]);
+
+  useImperativeHandle(
+    ref,
+    () => ({
+      highlightPath,
+      fitToPath,
+      clearHighlights,
+      zoomIn: () => zoomByFactor(METRO_CONFIG.ZOOM_STEP),
+      zoomOut: () => zoomByFactor(1 / METRO_CONFIG.ZOOM_STEP),
+      resetView: fitToData,
+    }),
+    [highlightPath, fitToPath, clearHighlights, zoomByFactor, fitToData]
+  );
 
   // наблюдаем размер рамки
   useEffect(() => {
@@ -404,7 +453,7 @@ const MetroCanvas = forwardRef<MetroCanvasHandle, Props>(function MetroCanvas(
                   strokeLinejoin="round"
                   fill="none"
                   className="non-scaling"
-                  opacity={isDimmed ? METRO_CONFIG.OPACITY_DIM : 1}
+                  opacity={isDimmed ? dimOpacity : 1}
                 />
                 <path
                   d={path}
@@ -415,7 +464,7 @@ const MetroCanvas = forwardRef<MetroCanvasHandle, Props>(function MetroCanvas(
                   strokeLinejoin="round"
                   fill="none"
                   className="non-scaling"
-                  opacity={isDimmed ? METRO_CONFIG.OPACITY_DIM : METRO_CONFIG.OPACITY_NORMAL}
+                  opacity={isDimmed ? dimOpacity : METRO_CONFIG.OPACITY_NORMAL}
                   style={{ cursor: 'pointer' }}
                   onClick={(e) => { e.stopPropagation(); handleLineClick(edge.line.line_id); }}
                   onMouseEnter={() => { if (!highlightedLine) setHighlightedLine(edge.line.line_id); }}
@@ -442,7 +491,7 @@ const MetroCanvas = forwardRef<MetroCanvasHandle, Props>(function MetroCanvas(
               (isHighlighted ? METRO_CONFIG.LINE_WIDTH_HIGHLIGHTED + 1 : METRO_CONFIG.LINE_WIDTH + 1) :
               (isHighlighted ? METRO_CONFIG.LINE_WIDTH_HIGHLIGHTED : METRO_CONFIG.LINE_WIDTH);
             
-            const opacity = isDimmed ? METRO_CONFIG.OPACITY_DIM : METRO_CONFIG.OPACITY_NORMAL;
+            const opacity = isDimmed ? dimOpacity : METRO_CONFIG.OPACITY_NORMAL;
 
             const path = createLinePath(segment.from, segment.to);
 
