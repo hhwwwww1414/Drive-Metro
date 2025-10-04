@@ -1,17 +1,56 @@
 'use client';
-import { useEffect, useState, useRef } from 'react';
+import { useCallback, useEffect, useState, useRef } from 'react';
 import Legend from '@/components/Legend';
 import MetroCanvas, { type MetroCanvasHandle } from '@/components/MetroCanvas';
-import SearchDrawer from '@/components/SearchDrawer';
+import SearchPanel from '@/components/SearchPanel';
 import { DataBundle } from '@/lib/types';
 import { loadData } from '@/lib/csv';
+import type { RouteSegment } from '@/lib/router';
 
 export default function Page() {
   const [bundle, setBundle] = useState<DataBundle | null>(null);
   const [activeLines, setActiveLines] = useState<Set<string>>(new Set());
   const canvasRef = useRef<MetroCanvasHandle>(null);
   const [lockedPath, setLockedPath] = useState<string[] | null>(null);
-  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [currentRoute, setCurrentRoute] = useState<RouteSegment[]>([]);
+
+  const clearRoute = useCallback(
+    (resetView = false) => {
+      setCurrentRoute([]);
+      setLockedPath(null);
+      canvasRef.current?.clearHighlights();
+      if (resetView) {
+        canvasRef.current?.resetView();
+      }
+    },
+    [canvasRef]
+  );
+
+  const ensureRouteLinesVisible = useCallback((route: RouteSegment[]) => {
+    setActiveLines((prev) => {
+      let changed = false;
+      const next = new Set(prev);
+      for (const segment of route) {
+        if (segment.transfer) continue;
+        if (!next.has(segment.line.line_id)) {
+          next.add(segment.line.line_id);
+          changed = true;
+        }
+      }
+      return changed ? next : prev;
+    });
+  }, []);
+
+  const handleRouteSelect = useCallback(
+    (route: RouteSegment[], cityPath: string[]) => {
+      ensureRouteLinesVisible(route);
+      setCurrentRoute(route);
+      setLockedPath(cityPath);
+      canvasRef.current?.highlightPath(cityPath);
+      canvasRef.current?.fitToPath(cityPath);
+    },
+    [canvasRef, ensureRouteLinesVisible]
+  );
 
   useEffect(() => {
     loadData()
@@ -24,11 +63,13 @@ export default function Page() {
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setLockedPath(null);
+      if (e.key === 'Escape') {
+        clearRoute(false);
+      }
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, []);
+  }, [clearRoute]);
 
   if (!bundle) {
     return (
@@ -44,13 +85,15 @@ export default function Page() {
         bundle={bundle}
         activeLines={activeLines}
         onToggle={(id) => {
-          const next = new Set(activeLines);
-          if (next.has(id)) {
-            next.delete(id);
-          } else {
-            next.add(id);
-          }
-          setActiveLines(next);
+          setActiveLines((prev) => {
+            const next = new Set(prev);
+            if (next.has(id)) {
+              next.delete(id);
+            } else {
+              next.add(id);
+            }
+            return next;
+          });
         }}
         onToggleMany={(ids, on) => {
           setActiveLines((prev) => {
@@ -73,25 +116,42 @@ export default function Page() {
           }
         }}
         onSelectPath={(ids) => {
+          clearRoute(false);
           setLockedPath(ids);
           canvasRef.current?.highlightPath(ids);
           canvasRef.current?.fitToPath(ids);
         }}
       />
-      <button
-        className="map-btn"
-        style={{ position: 'fixed', top: 12, right: 12, zIndex: 5 }}
-        onClick={() => setDrawerOpen(true)}
-      >
-        Поиск
-      </button>
-      <SearchDrawer
-        open={drawerOpen}
-        onOpenChange={setDrawerOpen}
+      <SearchPanel
         bundle={bundle}
-        canvasRef={canvasRef}
+        onRouteSelect={handleRouteSelect}
+        onReset={() => clearRoute(true)}
+        hasRoute={currentRoute.length > 0}
       />
-      <MetroCanvas ref={canvasRef} bundle={bundle} activeLines={activeLines} />
+      <div className="zoom-controls">
+        <button
+          type="button"
+          className="zoom-controls__btn"
+          aria-label="Приблизить"
+          onClick={() => canvasRef.current?.zoomIn()}
+        >
+          +
+        </button>
+        <button
+          type="button"
+          className="zoom-controls__btn"
+          aria-label="Отдалить"
+          onClick={() => canvasRef.current?.zoomOut()}
+        >
+          −
+        </button>
+      </div>
+      <MetroCanvas
+        ref={canvasRef}
+        bundle={bundle}
+        activeLines={activeLines}
+        currentRoute={currentRoute}
+      />
     </>
   );
 }

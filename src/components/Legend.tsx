@@ -58,24 +58,7 @@ export default function Legend({ bundle, activeLines, onToggle, onToggleMany, on
   };
 
   return (
-    <div
-      style={{
-        position: 'fixed',
-        left: 12,
-        top: 12,
-        width: 320,
-        maxHeight: 'calc(100vh - 24px)',
-        overflow: 'auto',
-        background: 'var(--frame-bg)',
-        border: '1px solid var(--frame-border)',
-        borderRadius: 12,
-        boxShadow: '0 4px 24px rgba(0,0,0,.06)',
-        padding: 16,
-        zIndex: 3,
-        fontFamily: 'Inter, system-ui, sans-serif',
-        color: 'var(--text)',
-      }}
-    >
+    <div className="legend">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
         <h3 style={{ margin: 0, fontSize: 16, fontWeight: 600, color: 'var(--text)' }}>Коридоры и линии</h3>
       </div>
