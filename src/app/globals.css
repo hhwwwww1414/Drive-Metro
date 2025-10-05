@@ -145,7 +145,6 @@ body {
 .legend--collapsed .legend__content {
   display: none;
 }
-
 .search-panel {
   position: fixed;
   top: 12px;
@@ -424,7 +423,6 @@ body {
   .search-panel__submit {
     width: 100%;
   }
-
   .legend {
     position: relative;
     left: auto;
