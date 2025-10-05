@@ -80,78 +80,84 @@ export default function Page() {
   }
 
   return (
-    <>
-      <Legend
-        bundle={bundle}
-        activeLines={activeLines}
-        onToggle={(id) => {
-          setActiveLines((prev) => {
-            const next = new Set(prev);
-            if (next.has(id)) {
-              next.delete(id);
-            } else {
-              next.add(id);
-            }
-            return next;
-          });
-        }}
-        onToggleMany={(ids, on) => {
-          setActiveLines((prev) => {
-            const next = new Set(prev);
-            if (on) {
-              ids.forEach((id) => next.add(id));
-            } else {
-              ids.forEach((id) => next.delete(id));
-            }
-            return next;
-          });
-        }}
-        onHoverPath={(ids) => {
-          if (ids) {
-            canvasRef.current?.highlightPath(ids);
-          } else if (lockedPath) {
-            canvasRef.current?.highlightPath(lockedPath);
-          } else {
-            canvasRef.current?.clearHighlights();
-          }
-        }}
-        onSelectPath={(ids) => {
-          clearRoute(false);
-          setLockedPath(ids);
-          canvasRef.current?.highlightPath(ids);
-          canvasRef.current?.fitToPath(ids);
-        }}
-      />
-      <SearchPanel
-        bundle={bundle}
-        onRouteSelect={handleRouteSelect}
-        onReset={() => clearRoute(true)}
-        hasRoute={currentRoute.length > 0}
-      />
-      <div className="zoom-controls">
-        <button
-          type="button"
-          className="zoom-controls__btn"
-          aria-label="Приблизить"
-          onClick={() => canvasRef.current?.zoomIn()}
-        >
-          +
-        </button>
-        <button
-          type="button"
-          className="zoom-controls__btn"
-          aria-label="Отдалить"
-          onClick={() => canvasRef.current?.zoomOut()}
-        >
-          −
-        </button>
+    <div className="app-shell">
+      <div className="app-shell__search">
+        <SearchPanel
+          bundle={bundle}
+          onRouteSelect={handleRouteSelect}
+          onReset={() => clearRoute(true)}
+          hasRoute={currentRoute.length > 0}
+        />
       </div>
-      <MetroCanvas
-        ref={canvasRef}
-        bundle={bundle}
-        activeLines={activeLines}
-        currentRoute={currentRoute}
-      />
-    </>
+      <div className="app-shell__map">
+        <MetroCanvas
+          ref={canvasRef}
+          bundle={bundle}
+          activeLines={activeLines}
+          currentRoute={currentRoute}
+        />
+        <div className="zoom-controls">
+          <button
+            type="button"
+            className="zoom-controls__btn"
+            aria-label="Приблизить"
+            onClick={() => canvasRef.current?.zoomIn()}
+          >
+            +
+          </button>
+          <button
+            type="button"
+            className="zoom-controls__btn"
+            aria-label="Отдалить"
+            onClick={() => canvasRef.current?.zoomOut()}
+          >
+            −
+          </button>
+        </div>
+      </div>
+      <div className="app-shell__legend">
+        <Legend
+          bundle={bundle}
+          activeLines={activeLines}
+          onToggle={(id) => {
+            setActiveLines((prev) => {
+              const next = new Set(prev);
+              if (next.has(id)) {
+                next.delete(id);
+              } else {
+                next.add(id);
+              }
+              return next;
+            });
+          }}
+          onToggleMany={(ids, on) => {
+            setActiveLines((prev) => {
+              const next = new Set(prev);
+              if (on) {
+                ids.forEach((id) => next.add(id));
+              } else {
+                ids.forEach((id) => next.delete(id));
+              }
+              return next;
+            });
+          }}
+          onHoverPath={(ids) => {
+            if (ids) {
+              canvasRef.current?.highlightPath(ids);
+            } else if (lockedPath) {
+              canvasRef.current?.highlightPath(lockedPath);
+            } else {
+              canvasRef.current?.clearHighlights();
+            }
+          }}
+          onSelectPath={(ids) => {
+            clearRoute(false);
+            setLockedPath(ids);
+            canvasRef.current?.highlightPath(ids);
+            canvasRef.current?.fitToPath(ids);
+          }}
+        />
+      </div>
+    </div>
   );
 }
